@@ -24,7 +24,7 @@ class IdUserSerializer(serializers.ModelSerializer):
 class PlaceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Place
-        fields = ('id','name','initialPrice','finalPrice','initialDate','finalDate','location','capacity','score')
+        fields = ('id','name','initialPrice','finalPrice','initialDate','finalDate','location','capacity','score','descrpition')
 
 class SearchPlaceSerializer(serializers.ModelSerializer):
     class Meta:
@@ -34,4 +34,4 @@ class SearchPlaceSerializer(serializers.ModelSerializer):
 class CreatePlaceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Place
-        fields = ('name','initialPrice','finalPrice','initialDate','finalDate','location','capacity','score')
+        fields = ('name','initialPrice','finalPrice','initialDate','finalDate','location','capacity','score','descrpition')

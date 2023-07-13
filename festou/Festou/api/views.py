@@ -105,7 +105,7 @@ class CreatePlaceView(generics.CreateAPIView):
                         location = location,
                         capacity = capacity,
                         score = score,
-                        description = description
+                        description = descrpition
                         )
             place.save()
             return Response(status=status.HTTP_201_CREATED)

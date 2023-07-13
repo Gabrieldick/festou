@@ -34,10 +34,10 @@ class CreateUserView(generics.CreateAPIView):
             agencia = serializer.validated_data.get("agency")
             queryset = User.objects.filter(cpf = cpf)
             if queryset.exists():
-                return Response({'Bad Request': 'CPF or Email already linked to an existing account. Please try again.'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'description': 'CPF or Email already linked to an existing account. Please try again.'}, status=status.HTTP_400_BAD_REQUEST)
             queryset = User.objects.filter(email = email)
             if queryset.exists():
-                return Response({'Bad Request': 'CPF or Email already linked to an existing account. Please try again.'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'description': 'CPF or Email already linked to an existing account. Please try again.'}, status=status.HTTP_400_BAD_REQUEST)
             user = User(
                         firstName = nome,
                         lastName = sobrenome,
@@ -51,8 +51,9 @@ class CreateUserView(generics.CreateAPIView):
                         agency = agencia
                         )
             user.save()
-            return Response(status=status.HTTP_201_CREATED)
-        return Response({'Bad Request': 'Invalid data...'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            return Response(IdUserSerializer(user).data, status=status.HTTP_201_CREATED)
+        return Response({'description': 'Invalid data...'}, status=status.HTTP_400_BAD_REQUEST)
     
 class LoginUserView(generics.CreateAPIView): 
     serializer_class = LoginUserSerializer
@@ -70,10 +71,10 @@ class LoginUserView(generics.CreateAPIView):
                 if user.password == senha:
                     return Response(IdUserSerializer(user).data, status=status.HTTP_200_OK)
                 else:
-                    return Response({'Bad Request': 'Email or password not found. Please try again.'}, status=status.HTTP_401_UNAUTHORIZED)
+                    return Response({'description': 'Email or password not found. Please try again.'}, status=status.HTTP_401_UNAUTHORIZED)
             else:
-                return Response({'Bad Request': 'Email or password not found. Please try again.'}, status=status.HTTP_401_UNAUTHORIZED)
-        return Response({'Bad Request': 'Invalid data...'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'description': 'Email or password not found. Please try again.'}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response({'description': 'Invalid data...'}, status=status.HTTP_400_BAD_REQUEST)
     
 
 class CreatePlaceView(generics.CreateAPIView): 
@@ -94,7 +95,7 @@ class CreatePlaceView(generics.CreateAPIView):
             descrpition = serializer.validated_data.get("description")
             queryset = Place.objects.filter(location = location)
             if queryset.exists():
-                return Response({'Bad Request': 'Location already linked to an existing place. Please try again.'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'description': 'Location already linked to an existing place. Please try again.'}, status=status.HTTP_400_BAD_REQUEST)
             place = Place(
                         name = name,
                         initialPrice = initialPrice,
@@ -108,7 +109,7 @@ class CreatePlaceView(generics.CreateAPIView):
                         )
             place.save()
             return Response(status=status.HTTP_201_CREATED)
-        return Response({'Bad Request': 'Invalid data...'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'description': 'Invalid data...'}, status=status.HTTP_400_BAD_REQUEST)
     
 class PlaceSearchView(generics.ListCreateAPIView):
     serializer_class = SearchPlaceSerializer
@@ -126,7 +127,7 @@ class PlaceSearchView(generics.ListCreateAPIView):
                 places = Place.objects.filter(location__contains=location)
             serializer = PlaceSerializer(places, many=True)
             return Response(serializer.data, status=200)
-        return Response({'Bad Request': 'Invalid data...'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'description': 'Invalid data...'}, status=status.HTTP_400_BAD_REQUEST)
 
 class PlaceView(generics.ListCreateAPIView): 
     queryset = Place.objects.all()

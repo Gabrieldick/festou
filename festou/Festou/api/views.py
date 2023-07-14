@@ -85,27 +85,21 @@ class CreatePlaceView(generics.CreateAPIView):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
             name = serializer.validated_data.get("name")
-            initialPrice = serializer.validated_data.get("initialPrice") 
-            finalPrice = serializer.validated_data.get("finalPrice")
-            initialDate = serializer.validated_data.get("initialDate")
-            finalDate = serializer.validated_data.get("finalDate")
+            price = serializer.validated_data.get("price") 
             location = serializer.validated_data.get("location")
             capacity = serializer.validated_data.get("capacity")
             score = serializer.validated_data.get("score")
-            descrpition = serializer.validated_data.get("description")
+            description = serializer.validated_data.get("description")
             queryset = Place.objects.filter(location = location)
             if queryset.exists():
                 return Response({'description': 'Location already linked to an existing place. Please try again.'}, status=status.HTTP_400_BAD_REQUEST)
             place = Place(
                         name = name,
-                        initialPrice = initialPrice,
-                        finalPrice = finalPrice,
-                        initialDate = initialDate,
-                        finalDate = finalDate,
+                        price = price,
                         location = location,
                         capacity = capacity,
                         score = score,
-                        description = descrpition
+                        description = description
                         )
             place.save()
             return Response(status=status.HTTP_201_CREATED)
@@ -118,13 +112,8 @@ class PlaceSearchView(generics.ListCreateAPIView):
             self.request.session.create()
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
-            filtro = serializer.validated_data.get("filter")
-            if filtro == 'name':
-                nome = serializer.validated_data.get("name")
-                places = Place.objects.filter(name__contains=nome)
-            elif filtro == 'location':
-                location = serializer.validated_data.get("location")
-                places = Place.objects.filter(location__contains=location)
+            nome = serializer.validated_data.get("name")
+            places = Place.objects.filter(name__contains=nome)
             serializer = PlaceSerializer(places, many=True)
             return Response(serializer.data, status=200)
         return Response({'description': 'Invalid data...'}, status=status.HTTP_400_BAD_REQUEST)

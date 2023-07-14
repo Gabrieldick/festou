@@ -15,13 +15,9 @@ class User(models.Model):
 
 
 class Place(models.Model):
-    filter = models.CharField(max_length=60, null=True, blank=True)
     name = models.CharField(max_length=60, null=True, blank=True)
-    initialPrice = models.FloatField(null=True, blank=True)
-    finalPrice = models.FloatField(null=True, blank=True)
-    initialDate = models.DateTimeField(null=True, blank=True)
-    finalDate = models.DateTimeField(null=True, blank=True)
+    price = models.FloatField(null=True, blank=True)
     location = models.CharField(max_length=40, null=True, blank=True)
-    capacity = models.IntegerField( null=True, blank=True)
-    score = models.FloatField( null=True, blank=True)
-    descrpition = models.CharField(max_length=1024, null=True, blank=True)
+    capacity = models.IntegerField(null=True, blank=True)
+    score = models.FloatField(null=True, blank=True)
+    description = models.CharField(max_length=1024, null=True, blank=True)

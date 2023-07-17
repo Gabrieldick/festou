@@ -24,4 +24,4 @@ class Place(models.Model):
     location = models.CharField(max_length=40, null=True, blank=True)
     capacity = models.IntegerField(null=True, blank=True)
     score = models.FloatField(null=True, blank=True)
-    description = models.CharField(max_length=1024, null=True, blank=True)
+    descrpition = models.CharField(max_length=1024, null=True, blank=True)

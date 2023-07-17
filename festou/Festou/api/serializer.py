@@ -29,9 +29,9 @@ class PlaceSerializer(serializers.ModelSerializer):
 class SearchPlaceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Place
-        fields = ('filter','name','initialPrice','finalPrice','initialDate','finalDate','location','capacity','score')
+        fields = ('name','initialPrice','finalPrice','initialDate','finalDate','location','capacity','score')
 
 class CreatePlaceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Place
-        fields = ('name','initialPrice','finalPrice','initialDate','finalDate','location','capacity','score','descrpition')
+        fields = ('name','price','location','capacity','score','descrpition')

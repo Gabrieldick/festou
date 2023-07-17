@@ -17,6 +17,7 @@ class User(models.Model):
 class Place(models.Model):
     filter = models.CharField(max_length=60, null=True, blank=True)
     name = models.CharField(max_length=60, null=True, blank=True)
+    price = models.FloatField(null=True, blank=True)
     initialPrice = models.FloatField(null=True, blank=True)
     finalPrice = models.FloatField(null=True, blank=True)
     initialDate = models.DateTimeField(null=True, blank=True)

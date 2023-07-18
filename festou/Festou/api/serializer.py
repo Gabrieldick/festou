@@ -35,3 +35,8 @@ class CreatePlaceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Place
         fields = ('name','price','location','capacity','score','descrpition')
+
+class DeletePlaceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Place
+        fields = ('id')

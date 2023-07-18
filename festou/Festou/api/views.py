@@ -1,11 +1,13 @@
 from django.shortcuts import render
 from rest_framework import generics, status
-from .serializer import UserSerializer, CreateUserSerializer, LoginUserSerializer, IdUserSerializer, PlaceSerializer, CreatePlaceSerializer, SearchPlaceSerializer
+from .serializer import UserSerializer, CreateUserSerializer, LoginUserSerializer, IdUserSerializer, PlaceSerializer, CreatePlaceSerializer, SearchPlaceSerializer, DeletePlaceSerializer
 from .models import User, Place
 import json
 from rest_framework.views import APIView
 from rest_framework.response import Response
 import hashlib
+from django.shortcuts import get_object_or_404
+from django.http import JsonResponse
 
 # Create your views here.
 
@@ -104,6 +106,11 @@ class CreatePlaceView(generics.CreateAPIView):
             return Response(status=status.HTTP_201_CREATED)
         return Response({'description': 'Invalid data...'}, status=status.HTTP_400_BAD_REQUEST)
     
+
+    def delete(self,request):
+        Place.objects.all().delete()
+        return Response(status=status.HTTP_423_LOCKED)
+    
 class PlaceSearchView(generics.ListCreateAPIView):
     serializer_class = SearchPlaceSerializer
     def post(self, request):
@@ -140,3 +147,4 @@ def encrypt_password(password):
     # Obtendo a senha criptografada em formato hexadecimal
     hashed_password = hash_object.hexdigest()
     return hashed_password
+

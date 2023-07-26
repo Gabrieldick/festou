@@ -1,6 +1,16 @@
 from django.shortcuts import render
 from rest_framework import generics, status
-from .serializer import UserSerializer, CreateUserSerializer, LoginUserSerializer, IdUserSerializer, PlaceSerializer, CreatePlaceSerializer, SearchPlaceSerializer, DeletePlaceSerializer
+from .serializer import (
+    UserSerializer, 
+    CreateUserSerializer, 
+    LoginUserSerializer, 
+    IdUserSerializer, 
+    PlaceSerializer, 
+    CreatePlaceSerializer, 
+    SearchPlaceSerializer, 
+    DeletePlaceSerializer,
+    PlaceDetailViewSerializer   
+)
 from .models import User, Place
 import json
 from rest_framework.views import APIView
@@ -55,7 +65,7 @@ class CreateUserView(generics.CreateAPIView):
             user.save()
             return Response(IdUserSerializer(user).data,status=status.HTTP_201_CREATED)
         return Response({'description': 'Invalid data...'}, status=status.HTTP_400_BAD_REQUEST)
-    
+
 class LoginUserView(generics.CreateAPIView): 
     serializer_class = LoginUserSerializer
     def post(self, request):
@@ -105,7 +115,6 @@ class CreatePlaceView(generics.CreateAPIView):
             place.save()
             return Response(status=status.HTTP_201_CREATED)
         return Response({'description': 'Invalid data...'}, status=status.HTTP_400_BAD_REQUEST)
-    
 
     def delete(self,request):
         Place.objects.all().delete()
@@ -131,7 +140,26 @@ class PlaceView(generics.ListCreateAPIView):
     queryset = Place.objects.all()
     serializer_class = PlaceSerializer
         
-    
+class PlaceDetailView(generics.CreateAPIView):
+    serializer_class = PlaceDetailViewSerializer
+
+    def post(self, request):
+        if not self.request.session.exists(self.request.session.session_key):
+            self.request.session.create()
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            id = serializer.validated_data.get("id")
+            location = serializer.validated_data.get("location")
+            name = serializer.validated_data.get("name")
+            print("id =",id)
+            queryset = Place.objects.filter(location=location)
+            if not queryset.exists():
+                return Response({'description': 'This place does not exist'}, status=status.HTTP_400_BAD_REQUEST)
+            place = queryset[0]
+            serializer = PlaceSerializer(place)
+
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response({'description': 'Invalid data...'}, status=status.HTTP_400_BAD_REQUEST)    
     
 def encrypt_password(password):
 

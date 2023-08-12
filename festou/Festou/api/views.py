@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.urls import reverse_lazy
 from rest_framework import generics, status
 from .serializer import UserSerializer, CreateUserSerializer, LoginUserSerializer, IdUserSerializer, PlaceSerializer, CreatePlaceSerializer, SearchPlaceSerializer, DeletePlaceSerializer
 from .models import User, Place
@@ -130,9 +131,38 @@ class PlaceSearchView(generics.ListCreateAPIView):
 class PlaceView(generics.ListCreateAPIView): 
     queryset = Place.objects.all()
     serializer_class = PlaceSerializer
-        
+
+class SearchUserId(generics.ListCreateAPIView):
+    def get(self, request, id, *args, **kwargs):
+        try: 
+            search = User.objects.get(pk = id)
+            response_data = UserSerializer(search).data
+            return JsonResponse(response_data)
+        except Place.DoesNotExist: 
+            return JsonResponse({'message': 'The User does not exist'}, status=status.HTTP_404_NOT_FOUND)
     
-    
+class SearchPlaceId(generics.ListCreateAPIView):
+    def get(self, request, id, *args, **kwargs):
+        try: 
+            search = Place.objects.get(pk = id)
+            response_data = PlaceSerializer(search).data      
+            return JsonResponse(response_data)
+        except Place.DoesNotExist: 
+            return JsonResponse({'message': 'The place does not exist'}, status=status.HTTP_404_NOT_FOUND)
+
+class setBalance(generics.ListCreateAPIView):
+    def get(self, request, id, balance, *args, **kwargs):
+        try: 
+            search = User.objects.get(pk = id)
+            search.balance = float(balance)
+            data_response = {
+                "balance" : search.balance
+            }
+            return JsonResponse(data_response)
+        except Place.DoesNotExist: 
+            return JsonResponse({'message': 'The User does not exist'}, status=status.HTTP_404_NOT_FOUND)
+
+
 def encrypt_password(password):
 
     # Criando um objeto hash SHA-256

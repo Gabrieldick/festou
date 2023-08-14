@@ -12,7 +12,7 @@ class User(models.Model):
     bank = models.IntegerField( null=True, blank=True)
     account = models.CharField(max_length=15, null=True, blank=True)
     agency = models.CharField(max_length=15, null=True, blank=True)
-
+    balance = models.IntegerField(null=True, blank=True)
 
 class Place(models.Model):
     name = models.CharField(max_length=1024, null=True, blank=True)

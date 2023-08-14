@@ -1,16 +1,7 @@
 from django.shortcuts import render
+from django.urls import reverse_lazy
 from rest_framework import generics, status
-from .serializer import (
-    UserSerializer, 
-    CreateUserSerializer, 
-    LoginUserSerializer, 
-    IdUserSerializer, 
-    PlaceSerializer, 
-    CreatePlaceSerializer, 
-    SearchPlaceSerializer, 
-    DeletePlaceSerializer,
-    PlaceDetailViewSerializer   
-)
+from .serializer import UserSerializer, CreateUserSerializer, LoginUserSerializer, IdUserSerializer, PlaceSerializer, CreatePlaceSerializer, SearchPlaceSerializer, DeletePlaceSerializer
 from .models import User, Place
 import json
 from rest_framework.views import APIView
@@ -65,7 +56,7 @@ class CreateUserView(generics.CreateAPIView):
             user.save()
             return Response(IdUserSerializer(user).data,status=status.HTTP_201_CREATED)
         return Response({'description': 'Invalid data...'}, status=status.HTTP_400_BAD_REQUEST)
-
+    
 class LoginUserView(generics.CreateAPIView): 
     serializer_class = LoginUserSerializer
     def post(self, request):
@@ -115,6 +106,7 @@ class CreatePlaceView(generics.CreateAPIView):
             place.save()
             return Response(status=status.HTTP_201_CREATED)
         return Response({'description': 'Invalid data...'}, status=status.HTTP_400_BAD_REQUEST)
+    
 
     def delete(self,request):
         Place.objects.all().delete()
@@ -139,28 +131,38 @@ class PlaceSearchView(generics.ListCreateAPIView):
 class PlaceView(generics.ListCreateAPIView): 
     queryset = Place.objects.all()
     serializer_class = PlaceSerializer
-        
-class PlaceDetailView(generics.CreateAPIView):
-    serializer_class = PlaceDetailViewSerializer
 
-    def post(self, request):
-        if not self.request.session.exists(self.request.session.session_key):
-            self.request.session.create()
-        serializer = self.serializer_class(data=request.data)
-        if serializer.is_valid():
-            id = serializer.validated_data.get("id")
-            location = serializer.validated_data.get("location")
-            name = serializer.validated_data.get("name")
-            print("id =",id)
-            queryset = Place.objects.filter(location=location)
-            if not queryset.exists():
-                return Response({'description': 'This place does not exist'}, status=status.HTTP_400_BAD_REQUEST)
-            place = queryset[0]
-            serializer = PlaceSerializer(place)
-
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response({'description': 'Invalid data...'}, status=status.HTTP_400_BAD_REQUEST)    
+class SearchUserId(generics.ListCreateAPIView):
+    def get(self, request, id, *args, **kwargs):
+        try: 
+            search = User.objects.get(pk = id)
+            response_data = UserSerializer(search).data
+            return JsonResponse(response_data)
+        except Place.DoesNotExist: 
+            return JsonResponse({'message': 'The User does not exist'}, status=status.HTTP_404_NOT_FOUND)
     
+class SearchPlaceId(generics.ListCreateAPIView):
+    def get(self, request, id, *args, **kwargs):
+        try: 
+            search = Place.objects.get(pk = id)
+            response_data = PlaceSerializer(search).data      
+            return JsonResponse(response_data)
+        except Place.DoesNotExist: 
+            return JsonResponse({'message': 'The place does not exist'}, status=status.HTTP_404_NOT_FOUND)
+
+class setBalance(generics.ListCreateAPIView):
+    def get(self, request, id, balance, *args, **kwargs):
+        try: 
+            search = User.objects.get(pk = id)
+            search.balance = float(balance)
+            data_response = {
+                "balance" : search.balance
+            }
+            return JsonResponse(data_response)
+        except Place.DoesNotExist: 
+            return JsonResponse({'message': 'The User does not exist'}, status=status.HTTP_404_NOT_FOUND)
+
+
 def encrypt_password(password):
 
     # Criando um objeto hash SHA-256

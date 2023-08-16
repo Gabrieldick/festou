@@ -40,3 +40,8 @@ class DeletePlaceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Place
         fields = ('id')
+
+class PlaceDetailViewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Place
+        fields = ('location', 'name')

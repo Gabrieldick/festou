@@ -1,14 +1,16 @@
 from django.shortcuts import render
 from django.urls import reverse_lazy
 from rest_framework import generics, status
-from .serializer import UserSerializer, CreateUserSerializer, LoginUserSerializer, IdUserSerializer, PlaceSerializer, CreatePlaceSerializer, SearchPlaceSerializer, DeletePlaceSerializer
-from .models import User, Place
+from .serializer import UserSerializer, CreateUserSerializer, LoginUserSerializer, IdUserSerializer, PlaceSerializer, CreatePlaceSerializer, SearchPlaceSerializer, CreateTransactionSerializer, CreateChargebackSerializer
+from .models import User, Place, Transaction
 import json
 from rest_framework.views import APIView
 from rest_framework.response import Response
 import hashlib
 from django.shortcuts import get_object_or_404
 from django.http import JsonResponse
+from datetime import datetime, timedelta
+from background_task import background
 
 # Create your views here.
 
@@ -16,6 +18,8 @@ from django.http import JsonResponse
 class UserView(generics.ListCreateAPIView): 
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    for user in User.objects.all():
+        user.balance = 0.0
 
 class CreateUserView(generics.CreateAPIView): 
     serializer_class = CreateUserSerializer
@@ -35,6 +39,7 @@ class CreateUserView(generics.CreateAPIView):
             banco = serializer.validated_data.get("bank")
             conta = serializer.validated_data.get("account")
             agencia = serializer.validated_data.get("agency")
+            balance = 0.0
             queryset = User.objects.filter(cpf = cpf)
             if queryset.exists():
                 return Response({'description': 'CPF or Email already linked to an existing account. Please try again.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -51,7 +56,8 @@ class CreateUserView(generics.CreateAPIView):
                         birthdate = data_de_aniversario,
                         bank = banco,
                         account = conta,
-                        agency = agencia
+                        agency = agencia,
+                        balance = balance
                         )
             user.save()
             return Response(IdUserSerializer(user).data,status=status.HTTP_201_CREATED)
@@ -150,18 +156,97 @@ class SearchPlaceId(generics.ListCreateAPIView):
         except Place.DoesNotExist: 
             return JsonResponse({'message': 'The place does not exist'}, status=status.HTTP_404_NOT_FOUND)
 
-class setBalance(generics.ListCreateAPIView):
+class CreateTransaction(generics.ListCreateAPIView):
+    serializer_class = CreateTransactionSerializer
+    queryset = Transaction.objects.all()
+
+    def post(self, request):     #initialDate and finalDate is datatime
+        if not self.request.session.exists(self.request.session.session_key):
+            self.request.session.create()
+        
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            id_client = serializer.validated_data.get("id_client")
+            id_place = serializer.validated_data.get("id_place")
+            initialDate = serializer.validated_data.get("initialDate")
+            finalDate = serializer.validated_data.get("finalDate")
+
+            days_to_subtract = 7
+            payday = initialDate - timedelta(days=days_to_subtract)
+
+            atual_place = Place.objects.get(pk = id_place)
+            price = atual_place.price
+
+            delta_time = finalDate - initialDate
+            payment =(int(delta_time.days)+1) * price
+
+            transaction = Transaction(
+                id_place = id_place, 
+                id_client = id_client,
+                price = price,
+                initialDate = initialDate,
+                finalDate = finalDate,
+                payday = payday,
+                payment = payment
+                )
+            transaction.save()
+            return Response(status=status.HTTP_201_CREATED)
+        return Response({'description': 'Invalid data...'}, status=status.HTTP_400_BAD_REQUEST)
+
+class Balance(generics.ListCreateAPIView):
     def get(self, request, id, balance, *args, **kwargs):
-        try: 
+        try:
             search = User.objects.get(pk = id)
-            search.balance = float(balance)
+            search.balance = float(balance) 
             data_response = {
-                "balance" : search.balance
+                "balance" : float(balance)
             }
             return JsonResponse(data_response)
         except Place.DoesNotExist: 
-            return JsonResponse({'message': 'The User does not exist'}, status=status.HTTP_404_NOT_FOUND)
+            return JsonResponse({'message': 'The User does not exist'}, status=status.HTTP_404_NOT_FOUND)  
 
+    def addBalance(self, id, balance):
+        search = User.objects.get(pk = id)
+        if search.balance == None:
+                search.balance = 0.0   
+        search.balance = search.balance + float(balance)
+        search.save()
+
+@background(schedule=5)  # A tarefa será verificada a cada hora
+def SchedulerBalance():
+    completed_transactions = Transaction.objects.filter(payday__gte=datetime.now().date())  
+    for transactions in completed_transactions:
+        id_owner = Place.objects.get(pk=transactions.id_place).id_owner
+        Balance.addBalance(id_owner, transactions.payment)
+        transactions.delete()
+
+class Chargeback(APIView):
+    serializer_class = CreateChargebackSerializer
+    def post(self, request):
+        if not self.request.session.exists(self.request.session.session_key):
+            self.request.session.create()
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            id_transaction = serializer.validated_data.get('id_transaction')
+            if id_transaction is None:            
+                id_transaction = request.data.get('id_transaction')
+                return Response({'error': 'id_transaction is required.'}, status=400)
+            try:
+                transaction = Transaction.objects.get(pk=id_transaction)
+            except Transaction.DoesNotExist:
+                return Response({'error': 'Transaction not found.'}, status=404)
+
+            if datetime.now().date() < transaction.payday.date():
+                client = get_object_or_404(User, pk=transaction.id_client)
+                Balance.addBalance(self,id=transaction.id_client, balance=transaction.payment)
+
+                transaction.delete()
+
+                return Response({'message': 'Chargeback successful.'}, status=200)
+            else:
+                return Response({'message': 'Cannot perform chargeback after payday.'}, status=400)
+        else:
+            return Response(serializer.errors, status=400)
 
 def encrypt_password(password):
 
@@ -178,4 +263,3 @@ def encrypt_password(password):
     hashed_password = hash_object.hexdigest()
     return hashed_password
 
- 

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, Place
+from .models import User, Place, Transaction
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -10,6 +10,14 @@ class CreateUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('firstName','lastName','email','cpf','phone','password','birthdate','bank','account','agency')
+
+class CreateTransactionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Transaction
+        fields = ('id_client', 'id_place', 'initialDate', 'finalDate')
+
+class CreateChargebackSerializer(serializers.Serializer):
+    id_transaction = serializers.IntegerField()
 
 class LoginUserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -40,8 +48,3 @@ class DeletePlaceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Place
         fields = ('id')
-
-class PlaceDetailViewSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Place
-        fields = ('location', 'name')

@@ -178,3 +178,4 @@ def encrypt_password(password):
     hashed_password = hash_object.hexdigest()
     return hashed_password
 
+ 

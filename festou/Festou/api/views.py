@@ -126,10 +126,15 @@ class PlaceSearchView(generics.ListCreateAPIView):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
             nome = serializer.validated_data.get("name")
-            places = Place.objects.filter(name__contains=nome)
             location = serializer.validated_data.get("location")
-            places_loc = Place.objects.filter(location__contains=location)
-            places = places.intersection(places_loc)
+            capacity = serializer.validated_data.get("capacity")
+            initial_price = serializer.validated_data.get("initialPrice")
+            final_price = serializer.validated_data.get("finalPrice")
+            places = Place.objects.filter(name__contains=nome) \
+                                .filter(location__contains=location) \
+                                .filter(capacity__gte=capacity) \
+                                .filter(price__gte=initial_price) \
+                                .filter(price__lte=final_price)
             serializer = PlaceSerializer(places, many=True)
             return Response(serializer.data, status=200)
         return Response({'description': 'Invalid data...'}, status=status.HTTP_400_BAD_REQUEST)

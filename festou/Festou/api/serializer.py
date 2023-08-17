@@ -14,8 +14,12 @@ class CreateUserSerializer(serializers.ModelSerializer):
 class CreateTransactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Transaction
-        fields = ('id_client', 'id_place', 'initialDate', 'finalDate')
+        fields = ('id_client', 'id_place', 'initialDate', 'finalDate', 'id_advertiser')
 
+class ReportTransactionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Transaction
+        fields = ('id_place', 'initialDate', 'finalDate', 'transactionDate', 'transactionState', 'payment')
 class CreateChargebackSerializer(serializers.Serializer):
     id_transaction = serializers.IntegerField()
 
@@ -34,10 +38,13 @@ class PlaceSerializer(serializers.ModelSerializer):
         model = Place
         fields = ('id','name','price','location','capacity','score','descrpition')
 
-class SearchPlaceSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Place
-        fields = ('name','initialPrice','finalPrice','initialDate','finalDate','location','capacity','score')
+class SearchPlaceSerializer(serializers.Serializer):
+    name = serializers.CharField(allow_blank=True)
+    location = serializers.CharField(allow_blank=True)
+    capacity = serializers.IntegerField(allow_null=True)
+    score = serializers.FloatField(allow_null=True)
+    initialPrice = serializers.FloatField(allow_null=True)
+    finalPrice = serializers.FloatField(allow_null=True)
 
 class CreatePlaceSerializer(serializers.ModelSerializer):
     class Meta:

@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.urls import reverse_lazy
 from rest_framework import generics, status
-from .serializer import UserSerializer, CreateUserSerializer, LoginUserSerializer, IdUserSerializer, PlaceSerializer, CreatePlaceSerializer, SearchPlaceSerializer, CreateTransactionSerializer, CreateChargebackSerializer
+from .serializer import UserSerializer, CreateUserSerializer, LoginUserSerializer, IdUserSerializer, PlaceSerializer, CreatePlaceSerializer, SearchPlaceSerializer, CreateTransactionSerializer, CreateChargebackSerializer, ReportTransactionSerializer
 from .models import User, Place, Transaction
 import json
 from rest_framework.views import APIView
@@ -127,10 +127,35 @@ class PlaceSearchView(generics.ListCreateAPIView):
         if serializer.is_valid():
             nome = serializer.validated_data.get("name")
             places = Place.objects.filter(name__contains=nome)
+
             location = serializer.validated_data.get("location")
             places_loc = Place.objects.filter(location__contains=location)
+
+            initialPrice = serializer.validated_data.get("initialPrice")
+            places_initPrice = Place.objects.filter(price__gte=initialPrice)
+
+            finalPrice = serializer.validated_data.get("finalPrice")
+            places_finalPrice = Place.objects.filter(price__lte=finalPrice)
+
+            capacity = serializer.validated_data.get("capacity")
+            places_capacity = Place.objects.filter(capacity__gte=capacity)
+
+            score = serializer.validated_data.get("score")
+            places_score = Place.objects.filter(score__gte=score)
+
+
             places = places.intersection(places_loc)
+            if initialPrice != 0:
+                places = places.intersection(places_initPrice)
+            if finalPrice != 0:
+                places = places.intersection(places_finalPrice)
+            if capacity != 0:
+                places = places.intersection(places_capacity)
+            if score != 0:
+                places = places.intersection(places_score)
+
             serializer = PlaceSerializer(places, many=True)
+
             return Response(serializer.data, status=200)
         return Response({'description': 'Invalid data...'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -143,7 +168,7 @@ class SearchUserId(generics.ListCreateAPIView):
         try: 
             search = User.objects.get(pk = id)
             response_data = UserSerializer(search).data
-            return JsonResponse(response_data)
+            return JsonResponse(response_data, status=200)
         except Place.DoesNotExist: 
             return JsonResponse({'message': 'The User does not exist'}, status=status.HTTP_404_NOT_FOUND)
     
@@ -152,9 +177,27 @@ class SearchPlaceId(generics.ListCreateAPIView):
         try: 
             search = Place.objects.get(pk = id)
             response_data = PlaceSerializer(search).data      
-            return JsonResponse(response_data)
+            return JsonResponse(response_data, status=200)
         except Place.DoesNotExist: 
             return JsonResponse({'message': 'The place does not exist'}, status=status.HTTP_404_NOT_FOUND)
+        
+class UserTransactionsMade(generics.ListCreateAPIView): #Transações na qual o usuário é o cliente
+    def get(self, request, id, *args, **kwargs):
+        try: 
+            Transactions = Transaction.objects.filter(id_client__contains = id)
+            serializer = ReportTransactionSerializer(Transactions, many=True)
+            return Response(serializer.data, status=200)
+        except Place.DoesNotExist: 
+            return JsonResponse({'message': 'The user does not exist'}, status=status.HTTP_404_NOT_FOUND)
+        
+class UserTransactionsReceived(generics.ListCreateAPIView): #Transações na qual o usuário é o anunciante
+    def get(self, request, id, *args, **kwargs):
+        try: 
+            Transactions = Transaction.objects.filter(id_advertiser__contains = id)
+            serializer = ReportTransactionSerializer(Transactions, many=True)
+            return Response(serializer.data, status=200)
+        except Place.DoesNotExist: 
+            return JsonResponse({'message': 'The user does not exist'}, status=status.HTTP_404_NOT_FOUND)
 
 class CreateTransaction(generics.ListCreateAPIView):
     serializer_class = CreateTransactionSerializer
@@ -168,8 +211,10 @@ class CreateTransaction(generics.ListCreateAPIView):
         if serializer.is_valid():
             id_client = serializer.validated_data.get("id_client")
             id_place = serializer.validated_data.get("id_place")
+            id_advertiser = serializer.validated_data.get("id_advertiser")
             initialDate = serializer.validated_data.get("initialDate")
             finalDate = serializer.validated_data.get("finalDate")
+
 
             days_to_subtract = 7
             payday = initialDate - timedelta(days=days_to_subtract)
@@ -183,11 +228,14 @@ class CreateTransaction(generics.ListCreateAPIView):
             transaction = Transaction(
                 id_place = id_place, 
                 id_client = id_client,
+                id_advertiser = id_advertiser,
                 price = price,
                 initialDate = initialDate,
                 finalDate = finalDate,
                 payday = payday,
-                payment = payment
+                payment = payment,
+                transactionDate = datetime.now().date(),
+                transactionState = "Started"
                 )
             transaction.save()
             return Response(status=status.HTTP_201_CREATED)
@@ -216,9 +264,10 @@ class Balance(generics.ListCreateAPIView):
 def SchedulerBalance():
     completed_transactions = Transaction.objects.filter(payday__gte=datetime.now().date())  
     for transactions in completed_transactions:
-        id_owner = Place.objects.get(pk=transactions.id_place).id_owner
-        Balance.addBalance(id_owner, transactions.payment)
-        transactions.delete()
+        if transactions.transactionState == "Started":
+            id_owner = Place.objects.get(pk=transactions.id_place).id_owner
+            Balance.addBalance(id_owner, transactions.payment)
+            transactions.transactionState = "Fisnished"
 
 class Chargeback(APIView):
     serializer_class = CreateChargebackSerializer
@@ -240,7 +289,8 @@ class Chargeback(APIView):
                 client = get_object_or_404(User, pk=transaction.id_client)
                 Balance.addBalance(self,id=transaction.id_client, balance=transaction.payment)
 
-                transaction.delete()
+                transaction.transactionState = "Canceled"
+                transaction.save()
 
                 return Response({'message': 'Chargeback successful.'}, status=200)
             else:
@@ -262,4 +312,3 @@ def encrypt_password(password):
     # Obtendo a senha criptografada em formato hexadecimal
     hashed_password = hash_object.hexdigest()
     return hashed_password
-

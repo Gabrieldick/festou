@@ -10,7 +10,7 @@ import hashlib
 from django.shortcuts import get_object_or_404
 from django.http import JsonResponse
 from datetime import datetime, timedelta
-from background_task import background
+#from background_task import background
 
 # Create your views here.
 
@@ -221,7 +221,7 @@ class Balance(generics.ListCreateAPIView):
                 search.balance = 0.0   
         search.balance = search.balance + float(balance)
         search.save()
-
+'''
 @background(schedule=5)  # A tarefa será verificada a cada hora
 def SchedulerBalance():
     completed_transactions = Transaction.objects.filter(payday__gte=datetime.now().date())  
@@ -229,7 +229,34 @@ def SchedulerBalance():
         id_owner = Place.objects.get(pk=transactions.id_place).id_owner
         Balance.addBalance(id_owner, transactions.payment)
         transactions.delete()
+'''
+class SchedulerTransaction(APIView):
+    def get(self, request, id_transaction, *args, **kwargs):
+        try:
+            transaction = Transaction.objects.get(pk=id_transaction)  
+            # Verificar se o payday foi atingido
+            if datetime.now().date() >= transaction.payday.date():
+                place = Place.objects.get(pk=transaction.id_place)
+                id_owner = place.id_owner
+                owner = User.objects.get(pk=id_owner)
+                new_balance = owner.balance + transaction.payment
+                owner.balance = new_balance
+                owner.save()
+                return Response({'message': f'User balance updated: {new_balance}'}, status=status.HTTP_200_OK)
+            else:
+                return Response({'message': 'Payday not reached yet.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        except Transaction.DoesNotExist:
+            return Response({'message': 'Transaction not found.'}, status=status.HTTP_404_NOT_FOUND)
 
+    '''
+    def get(self, request, id_transaction, *args, **kwargs):
+        transaction = Transaction.objects.get(pk=id_transaction)  
+        if transaction.payday.date() <= datetime.now().date():
+            id_owner = Place.objects.get(pk=transaction.id_place).id_owner
+            Balance.addBalance(self, id=id_owner, balance=transaction.payment)
+            transaction.delete()
+    '''
 class Chargeback(APIView):
     serializer_class = CreateChargebackSerializer
     def post(self, request):
@@ -246,7 +273,7 @@ class Chargeback(APIView):
             except Transaction.DoesNotExist:
                 return Response({'error': 'Transaction not found.'}, status=404)
 
-            if datetime.now().date() >= transaction.payday.date():
+            if datetime.now().date() > transaction.payday.date():
                 client = get_object_or_404(User, pk=transaction.id_client)
                 Balance.addBalance(self,id=transaction.id_client, balance=transaction.payment)
 
@@ -301,18 +328,13 @@ class CreateScore(APIView):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
             idClient = serializer.validated_data.get("idClient")
-            description_request = serializer.validated_data.get("description")
+            description = serializer.validated_data.get("description")
             score = serializer.validated_data.get("score")
             idPlace = serializer.validated_data.get("idPlace")
 
-            try:
-                User.objects.get(pk=idClient) 
-            except:
-                return Response({'description': "User not found"}, status=status.HTTP_400_BAD_REQUEST)
-
             score_obj = Score(
                 idClient = idClient, 
-                description = description_request,
+                description = description,
                 score = score,
                 idPlace = idPlace,
                 )

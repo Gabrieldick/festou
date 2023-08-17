@@ -1,8 +1,8 @@
 from django.shortcuts import render
 from django.urls import reverse_lazy
 from rest_framework import generics, status
-from .serializer import UserSerializer, CreateUserSerializer, LoginUserSerializer, IdUserSerializer, PlaceSerializer, CreatePlaceSerializer, SearchPlaceSerializer, CreateTransactionSerializer, CreateChargebackSerializer
-from .models import User, Place, Transaction
+from .serializer import UserSerializer, CreateUserSerializer, LoginUserSerializer, IdUserSerializer, PlaceSerializer, CreatePlaceSerializer, SearchPlaceSerializer, CreateTransactionSerializer, CreateChargebackSerializer, CreateScoreSerializer
+from .models import User, Place, Transaction, Score
 import json
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -18,8 +18,6 @@ from background_task import background
 class UserView(generics.ListCreateAPIView): 
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    for user in User.objects.all():
-        user.balance = 0.0
 
 class CreateUserView(generics.CreateAPIView): 
     serializer_class = CreateUserSerializer
@@ -83,7 +81,6 @@ class LoginUserView(generics.CreateAPIView):
             else:
                 return Response({'description': 'Email or password not found. Please try again.'}, status=status.HTTP_401_UNAUTHORIZED)
         return Response({'description': 'Invalid data...'}, status=status.HTTP_400_BAD_REQUEST)
-    
 
 class CreatePlaceView(generics.CreateAPIView): 
     serializer_class = CreatePlaceSerializer
@@ -96,8 +93,8 @@ class CreatePlaceView(generics.CreateAPIView):
             price = serializer.validated_data.get("price") 
             location = serializer.validated_data.get("location")
             capacity = serializer.validated_data.get("capacity")
-            score = serializer.validated_data.get("score")
-            descrpition = serializer.validated_data.get("descrpition")
+            description = serializer.validated_data.get("description")
+            id_owner = serializer.validated_data.get("id_owner")
             queryset = Place.objects.filter(location = location)
             if queryset.exists():
                 return Response({'description': 'Location already linked to an existing place. Please try again.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -106,18 +103,17 @@ class CreatePlaceView(generics.CreateAPIView):
                         price = price,
                         location = location,
                         capacity = capacity,
-                        score = score,
-                        descrpition = descrpition
+                        description = description,
+                        id_owner = id_owner
                         )
             place.save()
             return Response(status=status.HTTP_201_CREATED)
         return Response({'description': 'Invalid data...'}, status=status.HTTP_400_BAD_REQUEST)
     
-
     def delete(self,request):
         Place.objects.all().delete()
         return Response(status=status.HTTP_423_LOCKED)
-    
+
 class PlaceSearchView(generics.ListCreateAPIView):
     serializer_class = SearchPlaceSerializer
     def post(self, request):
@@ -160,7 +156,16 @@ class SearchPlaceId(generics.ListCreateAPIView):
             return JsonResponse(response_data)
         except Place.DoesNotExist: 
             return JsonResponse({'message': 'The place does not exist'}, status=status.HTTP_404_NOT_FOUND)
-
+        
+class SearchTransactionId(generics.ListCreateAPIView):
+    def get(self, request, id, *args, **kwargs):
+        try: 
+            search = Transaction.objects.get(pk = id)
+            response_data = CreateTransactionSerializer(search).data      
+            return JsonResponse(response_data)
+        except Place.DoesNotExist: 
+            return JsonResponse({'message': 'The place does not exist'}, status=status.HTTP_404_NOT_FOUND)
+        
 class CreateTransaction(generics.ListCreateAPIView):
     serializer_class = CreateTransactionSerializer
     queryset = Transaction.objects.all()
@@ -241,7 +246,7 @@ class Chargeback(APIView):
             except Transaction.DoesNotExist:
                 return Response({'error': 'Transaction not found.'}, status=404)
 
-            if datetime.now().date() < transaction.payday.date():
+            if datetime.now().date() >= transaction.payday.date():
                 client = get_object_or_404(User, pk=transaction.id_client)
                 Balance.addBalance(self,id=transaction.id_client, balance=transaction.payment)
 
@@ -252,6 +257,72 @@ class Chargeback(APIView):
                 return Response({'message': 'Cannot perform chargeback after payday.'}, status=400)
         else:
             return Response(serializer.errors, status=400)
+
+class EditPlace(APIView):
+    def put(self, request, place_id):
+        try:
+            place = Place.objects.get(pk=place_id)
+            
+            # Verificar se o usuário é o proprietário do lugar
+            if place.id_owner != request.user.id:
+                return Response({'message': 'You are not the owner of this place.'}, status=status.HTTP_403_FORBIDDEN)
+            
+            serializer = PlaceSerializer(place, data=request.data)
+            
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        except Place.DoesNotExist:
+            return Response({'message': 'Place not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+class DeletePlace(APIView):
+    def delete(self, request, place_id):
+        try:
+            place = Place.objects.get(pk=place_id)
+            
+            # Verificar se o usuário é o proprietário do lugar
+            if place.id_owner != request.user.id:
+                return Response({'message': 'You are not the owner of this place.'}, status=status.HTTP_403_FORBIDDEN)
+            
+            place.delete()
+            return Response({'message': 'Place deleted successfully.'}, status=status.HTTP_204_NO_CONTENT)
+        
+        except Place.DoesNotExist:
+            return Response({'message': 'Place not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+class CreateScore(APIView):
+    serializer_class = CreateScoreSerializer
+    def post(self, request):
+        if not self.request.session.exists(self.request.session.session_key):
+            self.request.session.create()
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            idClient = serializer.validated_data.get("idClient")
+            description = serializer.validated_data.get("description")
+            score = serializer.validated_data.get("score")
+            idPlace = serializer.validated_data.get("idPlace")
+
+            score_obj = Score(
+                idClient = idClient, 
+                description = description,
+                score = score,
+                idPlace = idPlace,
+                )
+            score_obj.save()
+            return Response({'message': 'Score created successfully.'}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class GetScoreByID(APIView):
+    def get(self, request, id_place):
+        try:
+            scores = Score.objects.filter(idPlace=id_place)
+            score_data = [{"name": User.objects.get(pk=score.idClient).firstName, "description": score.description, "score": score.score} for score in scores]
+            return JsonResponse(score_data, safe=False)
+        except Score.DoesNotExist:
+            return JsonResponse({'message': 'No scores found for the specified place ID.'}, status=status.HTTP_404_NOT_FOUND)
 
 def encrypt_password(password):
 
@@ -267,4 +338,3 @@ def encrypt_password(password):
     # Obtendo a senha criptografada em formato hexadecimal
     hashed_password = hash_object.hexdigest()
     return hashed_password
-

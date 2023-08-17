@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, Place, Transaction
+from .models import User, Place, Transaction, Score
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -32,22 +32,26 @@ class IdUserSerializer(serializers.ModelSerializer):
 class PlaceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Place
-        fields = ('id','name','price','location','capacity','score','descrpition')
+        fields = ('id','name','price','location','capacity','description')
 
 class SearchPlaceSerializer(serializers.Serializer):
     name = serializers.CharField(allow_blank=True)
     location = serializers.CharField(allow_blank=True)
     capacity = serializers.IntegerField(allow_null=True)
-    score = serializers.FloatField(allow_null=True)
     initialPrice = serializers.FloatField(allow_null=True)
     finalPrice = serializers.FloatField(allow_null=True)
 
 class CreatePlaceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Place
-        fields = ('name','price','location','capacity','score','descrpition')
+        fields = ('name','price','location','capacity','description')
 
 class DeletePlaceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Place
         fields = ('id')
+
+class CreateScoreSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Score
+        fields = '__all__'

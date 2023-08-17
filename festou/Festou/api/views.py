@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.urls import reverse_lazy
 from rest_framework import generics, status
-from .serializer import UserSerializer, CreateUserSerializer, LoginUserSerializer, IdUserSerializer, PlaceSerializer, CreatePlaceSerializer, SearchPlaceSerializer, CreateTransactionSerializer, CreateChargebackSerializer, CreateScoreSerializer
+from .serializer import UserSerializer, CreateUserSerializer, LoginUserSerializer, IdUserSerializer, PlaceSerializer, CreatePlaceSerializer, SearchPlaceSerializer, CreateTransactionSerializer, CreateChargebackSerializer, CreateScoreSerializer, ReportTransactionSerializer
 from .models import User, Place, Transaction, Score
 import json
 from rest_framework.views import APIView
@@ -93,7 +93,6 @@ class CreatePlaceView(generics.CreateAPIView):
             price = serializer.validated_data.get("price") 
             location = serializer.validated_data.get("location")
             capacity = serializer.validated_data.get("capacity")
-            score = serializer.validated_data.get("score")
             id_owner = serializer.validated_data.get("id_owner")
             description = serializer.validated_data.get("description")
             termsofuse = serializer.validated_data.get("termsofuse")
@@ -105,7 +104,6 @@ class CreatePlaceView(generics.CreateAPIView):
                         price = price,
                         location = location,
                         capacity = capacity,
-                        score = score,
                         description = description,
                         id_owner = id_owner,
                         termsofuse = termsofuse
@@ -125,16 +123,31 @@ class PlaceSearchView(generics.ListCreateAPIView):
             self.request.session.create()
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
+
             nome = serializer.validated_data.get("name")
+            places = Place.objects.filter(name__contains=nome)
+
             location = serializer.validated_data.get("location")
+            places_loc = Place.objects.filter(location__contains=location)
+
+            initialPrice = serializer.validated_data.get("initialPrice")
+            places_initPrice = Place.objects.filter(price__gte=initialPrice)
+
+            finalPrice = serializer.validated_data.get("finalPrice")
+            places_finalPrice = Place.objects.filter(price__lte=finalPrice)
+
             capacity = serializer.validated_data.get("capacity")
-            initial_price = serializer.validated_data.get("initialPrice")
-            final_price = serializer.validated_data.get("finalPrice")
-            places = Place.objects.filter(name__contains=nome) \
-                                .filter(location__contains=location) \
-                                .filter(capacity__gte=capacity) \
-                                .filter(price__gte=initial_price) \
-                                .filter(price__lte=final_price)
+            places_capacity = Place.objects.filter(capacity__gte=capacity)
+
+
+            places = places.intersection(places_loc)
+            if initialPrice != 0:
+                places = places.intersection(places_initPrice)
+            if finalPrice != 0:
+                places = places.intersection(places_finalPrice)
+            if capacity != 0:
+                places = places.intersection(places_capacity)
+
             serializer = PlaceSerializer(places, many=True)
 
             return Response(serializer.data, status=200)
@@ -265,12 +278,13 @@ class SchedulerTransaction(APIView):
             transaction = Transaction.objects.get(pk=id_transaction)  
             # Verificar se o payday foi atingido
             if datetime.now().date() >= transaction.payday.date():
-                place = Place.objects.get(pk=transaction.id_place)
-                id_owner = place.id_owner
+                id_owner = transaction.id_advertiser
                 owner = User.objects.get(pk=id_owner)
                 new_balance = owner.balance + transaction.payment
                 owner.balance = new_balance
                 owner.save()
+                transaction.transactionState = "Fisnished"
+                transaction.save()
                 return Response({'message': f'User balance updated: {new_balance}'}, status=status.HTTP_200_OK)
             else:
                 return Response({'message': 'Payday not reached yet.'}, status=status.HTTP_400_BAD_REQUEST)

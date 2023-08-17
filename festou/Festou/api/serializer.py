@@ -14,7 +14,7 @@ class CreateUserSerializer(serializers.ModelSerializer):
 class CreateTransactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Transaction
-        fields = ('id_client', 'id_place', 'initialDate', 'finalDate', 'id_advertiser')
+        fields = ('id_client', 'id_place', 'id_advertiser', 'initialDate', 'finalDate', 'id_advertiser')
 
 class ReportTransactionSerializer(serializers.ModelSerializer):
     class Meta:

@@ -300,17 +300,19 @@ class CreateScore(APIView):
             self.request.session.create()
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
-            if User.objects.get(pk=score.idClient) == None: 
-                return Response("User not found", status=status.HTTP_400_BAD_REQUEST)
-
             idClient = serializer.validated_data.get("idClient")
-            description = serializer.validated_data.get("description")
+            description_request = serializer.validated_data.get("description")
             score = serializer.validated_data.get("score")
             idPlace = serializer.validated_data.get("idPlace")
 
+            try:
+                User.objects.get(pk=idClient) 
+            except:
+                return Response({'description': "User not found"}, status=status.HTTP_400_BAD_REQUEST)
+
             score_obj = Score(
                 idClient = idClient, 
-                description = description,
+                description = description_request,
                 score = score,
                 idPlace = idPlace,
                 )

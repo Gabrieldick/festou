@@ -19,8 +19,8 @@ class Place(models.Model):
     price = models.FloatField(null=True, blank=True)
     location = models.CharField(max_length=1024, null=True, blank=True)
     capacity = models.IntegerField(null=True, blank=True)
-    score = models.FloatField(null=True, blank=True)
-    descrpition = models.CharField(max_length=1024, null=True, blank=True)
+    #score = models.FloatField(null=True, blank=True)
+    description = models.CharField(max_length=1024, null=True, blank=True)
     id_owner = models.IntegerField(null=True, blank=True)
     termsofuse = models.CharField(max_length=8192, null=True, blank=True)
 
@@ -34,3 +34,10 @@ class Transaction(models.Model):
     finalDate = models.DateTimeField(null=True, blank=True)
     price = models.FloatField(null=True, blank=True)
     payment = models.FloatField(null=True, blank=True)
+
+class Score(models.Model):
+    idClient = models.IntegerField(null=True, blank=True)
+    description = models.CharField(max_length=1024, null=True, blank=True)
+    score = models.IntegerField(null=True, blank=True)
+    idPlace = models.IntegerField(null=True, blank=True)
+

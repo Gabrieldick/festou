@@ -40,7 +40,7 @@ INSTALLED_APPS = [
     'api.apps.ApiConfig',
     'rest_framework',
     'corsheaders',
-    'background_task',
+    'django_crontab',
 ]
 
 MIDDLEWARE = [
@@ -86,6 +86,10 @@ DATABASES = {
     }
 }
 
+# Cron Jobs
+CRONJOBS = [
+    ('*/1 * * * *', 'api.cron.SchedulerBalance'),
+]
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators

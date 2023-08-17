@@ -14,8 +14,12 @@ class CreateUserSerializer(serializers.ModelSerializer):
 class CreateTransactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Transaction
-        fields = ('id_client', 'id_place', 'initialDate', 'finalDate')
+        fields = ('id_client', 'id_place', 'initialDate', 'finalDate', 'id_advertiser')
 
+class ReportTransactionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Transaction
+        fields = ('id_place', 'initialDate', 'finalDate', 'transactionDate', 'transactionState', 'payment')
 class CreateChargebackSerializer(serializers.Serializer):
     id_transaction = serializers.IntegerField()
 

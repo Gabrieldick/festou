@@ -136,6 +136,7 @@ class PlaceSearchView(generics.ListCreateAPIView):
                                 .filter(price__gte=initial_price) \
                                 .filter(price__lte=final_price)
             serializer = PlaceSerializer(places, many=True)
+
             return Response(serializer.data, status=200)
         return Response({'description': 'Invalid data...'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -148,7 +149,7 @@ class SearchUserId(generics.ListCreateAPIView):
         try: 
             search = User.objects.get(pk = id)
             response_data = UserSerializer(search).data
-            return JsonResponse(response_data)
+            return JsonResponse(response_data, status=200)
         except Place.DoesNotExist: 
             return JsonResponse({'message': 'The User does not exist'}, status=status.HTTP_404_NOT_FOUND)
     
@@ -157,10 +158,10 @@ class SearchPlaceId(generics.ListCreateAPIView):
         try: 
             search = Place.objects.get(pk = id)
             response_data = PlaceSerializer(search).data      
-            return JsonResponse(response_data)
+            return JsonResponse(response_data, status=200)
         except Place.DoesNotExist: 
             return JsonResponse({'message': 'The place does not exist'}, status=status.HTTP_404_NOT_FOUND)
-        
+                
 class SearchTransactionId(generics.ListCreateAPIView):
     def get(self, request, id, *args, **kwargs):
         try: 
@@ -170,6 +171,24 @@ class SearchTransactionId(generics.ListCreateAPIView):
         except Place.DoesNotExist: 
             return JsonResponse({'message': 'The place does not exist'}, status=status.HTTP_404_NOT_FOUND)
         
+class UserTransactionsMade(generics.ListCreateAPIView): #Transações na qual o usuário é o cliente
+    def get(self, request, id, *args, **kwargs):
+        try: 
+            Transactions = Transaction.objects.filter(id_client__contains = id)
+            serializer = ReportTransactionSerializer(Transactions, many=True)
+            return Response(serializer.data, status=200)
+        except Place.DoesNotExist: 
+            return JsonResponse({'message': 'The user does not exist'}, status=status.HTTP_404_NOT_FOUND)
+        
+class UserTransactionsReceived(generics.ListCreateAPIView): #Transações na qual o usuário é o anunciante
+    def get(self, request, id, *args, **kwargs):
+        try: 
+            Transactions = Transaction.objects.filter(id_advertiser__contains = id)
+            serializer = ReportTransactionSerializer(Transactions, many=True)
+            return Response(serializer.data, status=200)
+        except Place.DoesNotExist: 
+            return JsonResponse({'message': 'The user does not exist'}, status=status.HTTP_404_NOT_FOUND)
+
 class CreateTransaction(generics.ListCreateAPIView):
     serializer_class = CreateTransactionSerializer
     queryset = Transaction.objects.all()
@@ -182,8 +201,10 @@ class CreateTransaction(generics.ListCreateAPIView):
         if serializer.is_valid():
             id_client = serializer.validated_data.get("id_client")
             id_place = serializer.validated_data.get("id_place")
+            id_advertiser = serializer.validated_data.get("id_advertiser")
             initialDate = serializer.validated_data.get("initialDate")
             finalDate = serializer.validated_data.get("finalDate")
+
 
             days_to_subtract = 7
             payday = initialDate - timedelta(days=days_to_subtract)
@@ -197,11 +218,14 @@ class CreateTransaction(generics.ListCreateAPIView):
             transaction = Transaction(
                 id_place = id_place, 
                 id_client = id_client,
+                id_advertiser = id_advertiser,
                 price = price,
                 initialDate = initialDate,
                 finalDate = finalDate,
                 payday = payday,
-                payment = payment
+                payment = payment,
+                transactionDate = datetime.now().date(),
+                transactionState = "Started"
                 )
             transaction.save()
             return Response(status=status.HTTP_201_CREATED)
@@ -230,9 +254,10 @@ class Balance(generics.ListCreateAPIView):
 def SchedulerBalance():
     completed_transactions = Transaction.objects.filter(payday__gte=datetime.now().date())  
     for transactions in completed_transactions:
-        id_owner = Place.objects.get(pk=transactions.id_place).id_owner
-        Balance.addBalance(id_owner, transactions.payment)
-        transactions.delete()
+        if transactions.transactionState == "Started":
+            id_owner = Place.objects.get(pk=transactions.id_place).id_owner
+            Balance.addBalance(id_owner, transactions.payment)
+            transactions.transactionState = "Fisnished"
 '''
 class SchedulerTransaction(APIView):
     def get(self, request, id_transaction, *args, **kwargs):
@@ -281,7 +306,8 @@ class Chargeback(APIView):
                 client = get_object_or_404(User, pk=transaction.id_client)
                 Balance.addBalance(self,id=transaction.id_client, balance=transaction.payment)
 
-                transaction.delete()
+                transaction.transactionState = "Canceled"
+                transaction.save()
 
                 return Response({'message': 'Chargeback successful.'}, status=200)
             else:

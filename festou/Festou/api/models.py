@@ -22,6 +22,8 @@ class Place(models.Model):
     score = models.FloatField(null=True, blank=True)
     descrpition = models.CharField(max_length=1024, null=True, blank=True)
     id_owner = models.IntegerField(null=True, blank=True)
+    termsofuse = models.CharField(max_length=8192, null=True, blank=True)
+
     # dias_ocupados
 
 class Transaction(models.Model):

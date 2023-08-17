@@ -98,6 +98,7 @@ class CreatePlaceView(generics.CreateAPIView):
             capacity = serializer.validated_data.get("capacity")
             score = serializer.validated_data.get("score")
             descrpition = serializer.validated_data.get("descrpition")
+            termsofuse = serializer.validated_data.get("termsofuse")
             queryset = Place.objects.filter(location = location)
             if queryset.exists():
                 return Response({'description': 'Location already linked to an existing place. Please try again.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -107,7 +108,8 @@ class CreatePlaceView(generics.CreateAPIView):
                         location = location,
                         capacity = capacity,
                         score = score,
-                        descrpition = descrpition
+                        descrpition = descrpition,
+                        termsofuse = termsofuse
                         )
             place.save()
             return Response(status=status.HTTP_201_CREATED)

@@ -13,7 +13,8 @@ def SchedulerBalance():
             new_balance = owner.balance + transaction.payment
             owner.balance = new_balance
             owner.save()
-            transaction.delete()
+            transaction.transactionState = "Finished"
+            transaction.save()
             return Response({'message': f'User balance updated: {new_balance}'}, status=status.HTTP_200_OK)
         else:
             return Response({'message': 'Payday not reached yet.'}, status=status.HTTP_400_BAD_REQUEST)

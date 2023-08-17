@@ -270,7 +270,7 @@ def SchedulerBalance():
         if transactions.transactionState == "Started":
             id_owner = Place.objects.get(pk=transactions.id_place).id_owner
             Balance.addBalance(id_owner, transactions.payment)
-            transactions.transactionState = "Fisnished"
+            transactions.transactionState = "Finished"
 '''
 class SchedulerTransaction(APIView):
     def get(self, request, id_transaction, *args, **kwargs):
@@ -283,8 +283,6 @@ class SchedulerTransaction(APIView):
                 new_balance = owner.balance + transaction.payment
                 owner.balance = new_balance
                 owner.save()
-                transaction.transactionState = "Fisnished"
-                transaction.save()
                 return Response({'message': f'User balance updated: {new_balance}'}, status=status.HTTP_200_OK)
             else:
                 return Response({'message': 'Payday not reached yet.'}, status=status.HTTP_400_BAD_REQUEST)

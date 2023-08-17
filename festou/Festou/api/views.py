@@ -107,7 +107,7 @@ class CreatePlaceView(generics.CreateAPIView):
                         capacity = capacity,
                         score = score,
                         description = description,
-                        id_owner = id_owner
+                        id_owner = id_owner,
                         termsofuse = termsofuse
                         )
             place.save()

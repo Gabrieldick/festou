@@ -1,27 +1,20 @@
 from rest_framework import serializers
-from .models import User, Place, Transaction, Score
+from .models import User, Place, Transaction
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id','first_name','last_name','email','cpf','phone','password','birthdate','bank','account','agency')
+        fields = ('id','firstName','lastName','email','cpf','phone','password','birthdate','bank','account','agency')
 
 class CreateUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('first_name','last_name','email','cpf','phone','password','birthdate','bank','account','agency')
+        fields = ('firstName','lastName','email','cpf','phone','password','birthdate','bank','account','agency')
 
 class CreateTransactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Transaction
-        fields = ('id_client', 'id_place', 'initial_date', 'final_date')
-
-class ReportTransactionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Transaction
-        fields = ('id_place', 'initial_date', 'final_date', 'transaction_date', 'transaction_state', 'payment')
-class CreateChargebackSerializer(serializers.Serializer):
-    id_transaction = serializers.IntegerField()
+        fields = ('id_client', 'id_place', 'initialDate', 'payday', 'finalDate', 'price', 'payment')
 
 class LoginUserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -31,34 +24,24 @@ class LoginUserSerializer(serializers.ModelSerializer):
 class IdUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id','first_name')
+        fields = ('id','firstName')
 
 class PlaceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Place
-        fields = ('id','name','price','location','capacity','description')
+        fields = ('id','name','price','location','capacity','score','descrpition')
 
-class SearchPlaceSerializer(serializers.Serializer):
-    name = serializers.CharField(allow_blank=True)
-    location = serializers.CharField(allow_blank=True)
-    capacity = serializers.IntegerField(allow_null=True)
-    initial_price = serializers.FloatField(allow_null=True)
-    final_price = serializers.FloatField(allow_null=True)
-    initial_date = serializers.CharField(allow_null=True)
-    final_date = serializers.CharField(allow_null=True)
-    score = serializers.FloatField(allow_null=True)
+class SearchPlaceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Place
+        fields = ('name','initialPrice','finalPrice','initialDate','finalDate','location','capacity','score')
 
 class CreatePlaceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Place
-        fields = ('name','price','location','capacity','description', 'terms_of_use')
+        fields = ('name','price','location','capacity','score','descrpition')
 
 class DeletePlaceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Place
         fields = ('id')
-
-class CreateScoreSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Score
-        fields = ('id_place', 'id_client', 'score', 'description')

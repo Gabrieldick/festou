@@ -28,6 +28,10 @@ class PlaceSearchView(generics.ListCreateAPIView):
 class SearchUserId(generics.ListCreateAPIView):
     def get(self, request, id, *args, **kwargs):
         return user_id(self, request, id)
+    
+class UserPlacesId(generics.ListCreateAPIView):
+    def get(self, request, id, *args, **kwargs):
+        return user_places_id(self, request, id)
 
 class SearchPlaceId(generics.ListCreateAPIView):
     def get(self, request, id, *args, **kwargs):
@@ -48,27 +52,27 @@ class UserTransactionsReceived(generics.ListCreateAPIView): #Transações na qua
 class EditPlace(APIView):
     serializer_class = PlaceSerializer
     def put(self, request, place_id):
-        edit_place(self, request, place_id)
+        return edit_place(self, request, place_id)
 
 class DeletePlace(APIView):
     def delete(self, request, place_id):
-        delete_place(self, request, place_id)
+        return delete_place(self, request, place_id)
 
 class CreateScore(APIView):
     serializer_class = CreateScoreSerializer
     def post(self, request):
-        create_score(self, request)
+        return create_score(self, request)
 
 class GetScoreByID(APIView):
     def get(self, request, id_place):
-        score_id(self, request, id_place)
+        return score_id(self, request, id_place)
 
 class Chargeback(APIView):
     serializer_class = CreateChargebackSerializer
     def post(self, request):
-        chargeback(self, request)
+        return chargeback(self, request)
 
 class LoginUserView(generics.CreateAPIView): 
     serializer_class = LoginUserSerializer
     def post(self, request):
-        login_user(self, request)
+        return login_user(self, request)

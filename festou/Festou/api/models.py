@@ -30,6 +30,10 @@ class Place(models.Model):
     ]
     checked = models.IntegerField(choices=STATE_CHOICES, default=0)
 
+    image_1 = models.ImageField(upload_to='place_images/image_1/', null=True, blank=True)
+    image_2 = models.ImageField(upload_to='place_images/image_2/', null=True, blank=True)
+    image_3 = models.ImageField(upload_to='place_images/image_3/', null=True, blank=True)
+
 class Transaction(models.Model):
     id_client = models.IntegerField(null=True, blank=True)
     id_place = models.IntegerField(null=True, blank=True)

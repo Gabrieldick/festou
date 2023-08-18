@@ -20,7 +20,7 @@ def login_user(self, request):
         queryset = User.objects.filter(email = email) #Filtra usuário pelo email, dado que é único por conta
         if queryset.exists():
             user = queryset[0]
-            if user.blocked == True:
+            if user.blocked == False:
                 if user.password == senha:
                     return Response(IdUserSerializer(user).data, status=status.HTTP_200_OK)
                 else:

@@ -92,6 +92,7 @@ class CreatePlaceView(generics.CreateAPIView):  #Funcionamento análogo à outra
             description = serializer.validated_data.get("description")
             termsofuse = serializer.validated_data.get("termsofuse")
             queryset = Place.objects.filter(location = location)
+            checked = Null
             if queryset.exists():
                 return Response({'description': 'Location already linked to an existing place. Please try again.'}, status=status.HTTP_400_BAD_REQUEST)
             place = Place(
@@ -101,7 +102,8 @@ class CreatePlaceView(generics.CreateAPIView):  #Funcionamento análogo à outra
                         capacity = capacity,
                         description = description,
                         id_owner = id_owner,
-                        termsofuse = termsofuse
+                        termsofuse = termsofuse,
+                        checked = checked
                         )
             place.save()
             return Response(status=status.HTTP_201_CREATED)
@@ -293,7 +295,7 @@ class Chargeback(APIView):
             except Transaction.DoesNotExist:
                 return Response({'error': 'Transaction not found.'}, status=404)
 
-            if datetime.now().date() > transaction.payday.date():
+            if datetime.now().date() > transaction.payday.date() and transaction.transactionState == 'Started':
                 client = get_object_or_404(User, pk=transaction.id_client)
                 Balance.addBalance(self,id=transaction.id_client, balance=transaction.payment) #devolve o dinheiro para o comprador e altera o status da transação
 

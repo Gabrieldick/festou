@@ -7,8 +7,6 @@ from datetime import datetime
 from .serializer import LoginUserSerializer, IdUserSerializer
 from .searches import * 
 from .manager import *
-from .views import encrypt_password
-
 
 def login_user(self, request):
     if not self.request.session.exists(self.request.session.session_key):

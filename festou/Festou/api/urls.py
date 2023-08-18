@@ -12,7 +12,7 @@ urlpatterns = [
     path('v1/user/<int:id>', views.SearchUserId.as_view()),
     path('v1/transaction', views.CreateTransaction.as_view()), 
     path('v1/transaction/<int:id>', views.SearchTransactionId.as_view()), 
-    path('v1/payment/<int:id_transaction>', views.SchedulerTransaction.as_view()),
+    # path('v1/payment/<int:id_transaction>', views.SchedulerTransaction.as_view()),
     path('v1/chargeback', views.Chargeback.as_view()),  
     path('v1/createScore', views.CreateScore.as_view()),
     path('v1/getScore/<int:id_place>', views.GetScoreByID.as_view()),

@@ -1,10 +1,10 @@
-from .serializer import CreateUserSerializer, IdUserSerializer, CreatePlaceSerializer, CreateTransactionSerializer, ReportTransactionSerializer, PlaceSerializer, CreateScoreSerializer
+import hashlib
+from .serializer import CreatePlaceSerializer, CreateUserSerializer, IdUserSerializer, CreateTransactionSerializer, ReportTransactionSerializer, PlaceSerializer, CreateScoreSerializer
 from .models import User, Place, Transaction, Score
 from rest_framework.response import Response
 from rest_framework import status
 from django.http import JsonResponse
 from datetime import datetime, timedelta
-from .views import encrypt_password
 
 def create_user(self, request): 
     if not self.request.session.exists(self.request.session.session_key):
@@ -176,4 +176,10 @@ def create_score(self, request):
         score_obj.save()
         return Response({'message': 'Score created successfully.'}, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
+def encrypt_password(password):
+    hash_object = hashlib.sha256() # Criando um objeto hash SHA-256
+    password_bytes = password.encode('utf-8')# Convertendo a senha em bytes
+    hash_object.update(password_bytes)# Atualizando o objeto hash com a senha
+    hashed_password = hash_object.hexdigest()# Obtendo a senha criptografada em formato hexadecimal
+    return hashed_password

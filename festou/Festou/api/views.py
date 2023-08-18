@@ -1,10 +1,9 @@
-import hashlib
 from rest_framework import generics
+from .actions import chargeback, login_user
+from .manager import create_place, create_score, create_transaction, create_user, delete_place, edit_place, get_user_transaction_made, get_user_transactions_received
+from .searches import place, place_id, score_id, transaction_id, user_id
 from .serializer import CreatePlaceSerializer, SearchPlaceSerializer
 from rest_framework.views import APIView
-from .actions import *
-from .searches import * 
-from .manager import *
 
 class CreateUserView(generics.CreateAPIView): 
     def post(self, request):
@@ -67,10 +66,3 @@ class Chargeback(APIView):
 class LoginUserView(generics.CreateAPIView): 
     def post(self, request):
         login_user(self, request)
-
-def encrypt_password(password):
-    hash_object = hashlib.sha256() # Criando um objeto hash SHA-256
-    password_bytes = password.encode('utf-8')# Convertendo a senha em bytes
-    hash_object.update(password_bytes)# Atualizando o objeto hash com a senha
-    hashed_password = hash_object.hexdigest()# Obtendo a senha criptografada em formato hexadecimal
-    return hashed_password

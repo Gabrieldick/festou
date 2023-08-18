@@ -23,6 +23,7 @@ class Place(models.Model):
     description = models.CharField(max_length=1024, null=True, blank=True)
     id_owner = models.IntegerField(null=True, blank=True)
     termsofuse = models.CharField(max_length=8192, null=True, blank=True)
+    checked = models.IntegerField(null=True, blank=True)            #Neg = recused      Zero and Pos = accepted
 
     # dias_ocupados
 

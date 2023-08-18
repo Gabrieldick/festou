@@ -48,6 +48,24 @@ def create_user(self, request):
         return Response(IdUserSerializer(user).data,status=status.HTTP_201_CREATED)
     return Response({'description': 'Invalid data...'}, status=status.HTTP_400_BAD_REQUEST)    
 
+def edit_user(self, request, user_id):
+    try:
+        user = User.objects.get(pk=user_id)
+        # Verificar se é o usuário 
+        if user_id != request.user.id:
+            return Response({'message': 'You are not the owner of this account.'}, status=status.HTTP_403_FORBIDDEN)   
+        serializer = self.serializer_class(user, data=request.data)
+        if serializer.is_valid():
+            queryset = User.objects.filter(email = email)
+            if queryset.exists():
+                return Response({'description': 'CPF or Email already linked to an existing account. Please try again.'}, status=status.HTTP_400_BAD_REQUEST)
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    except Place.DoesNotExist:
+        return Response({'message': 'Place not found.'}, status=status.HTTP_404_NOT_FOUND)
+
 def add_balance(self, id, balance): 
         user = User.objects.get(pk = id)
         if user.balance == None:
@@ -67,8 +85,8 @@ def create_place(self, request):
         id_owner = request.user.id #serializer.validated_data.get("id_owner")
         description = serializer.validated_data.get("description")
         terms_of_use = serializer.validated_data.get("terms_of_use")
-        queryset = Place.objects.filter(location = location)
         checked = 0
+        queryset = Place.objects.filter(location = location)
         if queryset.exists():
             return Response({'description': 'Location already linked to an existing place. Please try again.'}, status=status.HTTP_400_BAD_REQUEST)
         place = Place(
@@ -93,6 +111,9 @@ def edit_place(self, request, place_id):
             return Response({'message': 'You are not the owner of this place.'}, status=status.HTTP_403_FORBIDDEN)   
         serializer = self.serializer_class(place, data=request.data)
         if serializer.is_valid():
+            queryset = Place.objects.filter(location = place.location)
+            if queryset.exists():
+                return Response({'description': 'Location already linked to an existing place. Please try again.'}, status=status.HTTP_400_BAD_REQUEST)
             serializer.save()
             return Response(serializer.data)
         else:

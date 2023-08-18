@@ -11,6 +11,11 @@ class CreateUserSerializer(serializers.ModelSerializer):
         model = User
         fields = ('first_name','last_name','email','cpf','phone','password','birthdate','bank','account','agency')
 
+class EditUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('first_name','last_name','email','phone','password','birthdate','bank','account','agency')
+
 class CreateTransactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Transaction

@@ -19,5 +19,3 @@ urlpatterns = [
     path('v1/getTransactionsMade/<int:id>', views.UserTransactionsMade.as_view()),
     path('v1/getTransactionsReceived/<int:id>', views.UserTransactionsReceived.as_view()),
 ]
-
-#path('v1/balance/<int:id>/<str:balance>/<int:dia>/<int:mes>/<int:ano>', views.SchedulerBalance.as_view()),

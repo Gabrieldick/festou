@@ -4,22 +4,22 @@ from .models import User, Place, Transaction, Score
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id','firstName','lastName','email','cpf','phone','password','birthdate','bank','account','agency')
+        fields = ('id','first_name','last_name','email','cpf','phone','password','birthdate','bank','account','agency')
 
 class CreateUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('firstName','lastName','email','cpf','phone','password','birthdate','bank','account','agency')
+        fields = ('first_name','last_name','email','cpf','phone','password','birthdate','bank','account','agency')
 
 class CreateTransactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Transaction
-        fields = ('id_client', 'id_place', 'id_advertiser', 'initialDate', 'finalDate', 'id_advertiser')
+        fields = ('id_client', 'id_place', 'initial_date', 'final_date')
 
 class ReportTransactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Transaction
-        fields = ('id_place', 'initialDate', 'finalDate', 'transactionDate', 'transactionState', 'payment')
+        fields = ('id_place', 'initial_date', 'final_date', 'transaction_date', 'transaction_state', 'payment')
 class CreateChargebackSerializer(serializers.Serializer):
     id_transaction = serializers.IntegerField()
 
@@ -31,7 +31,7 @@ class LoginUserSerializer(serializers.ModelSerializer):
 class IdUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id','firstName')
+        fields = ('id','first_name')
 
 class PlaceSerializer(serializers.ModelSerializer):
     class Meta:
@@ -48,7 +48,7 @@ class SearchPlaceSerializer(serializers.Serializer):
 class CreatePlaceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Place
-        fields = ('name','price','location','capacity','description')
+        fields = ('name','price','location','capacity','description', 'terms_of_use')
 
 class DeletePlaceSerializer(serializers.ModelSerializer):
     class Meta:

@@ -2,8 +2,8 @@ from django.db import models
 
 # Create your models here.
 class User(models.Model):
-    firstName = models.CharField(max_length=20, null=True, blank=True)
-    lastName = models.CharField(max_length=40, null=True, blank=True)
+    first_name = models.CharField(max_length=20, null=True, blank=True)
+    last_name = models.CharField(max_length=40, null=True, blank=True)
     email = models.CharField(max_length=40, null=True, blank=True)
     cpf = models.CharField(max_length=14, null=True, blank=True)
     phone = models.CharField(max_length=40, null=True, blank=True)
@@ -19,29 +19,30 @@ class Place(models.Model):
     price = models.FloatField(null=True, blank=True)
     location = models.CharField(max_length=1024, null=True, blank=True)
     capacity = models.IntegerField(null=True, blank=True)
-    #score = models.FloatField(null=True, blank=True)
     description = models.CharField(max_length=1024, null=True, blank=True)
     id_owner = models.IntegerField(null=True, blank=True)
-    termsofuse = models.CharField(max_length=8192, null=True, blank=True)
-    checked = models.IntegerField(null=True, blank=True)            #Neg = recused      Zero and Pos = accepted
-
-    # dias_ocupados
+    terms_of_use = models.CharField(max_length=8192, null=True, blank=True)
+    STATE_CHOICES = [
+        (-1, 'Rejected'),
+        (0, 'Pending'),
+        (1, 'Accepted'),
+    ]
+    checked = models.IntegerField(choices=STATE_CHOICES, default=0)
 
 class Transaction(models.Model):
     id_client = models.IntegerField(null=True, blank=True)
     id_place = models.IntegerField(null=True, blank=True)
     id_advertiser = models.IntegerField(null=True, blank=True)
-    initialDate = models.DateTimeField(null=True, blank=True)
+    initial_date = models.DateTimeField(null=True, blank=True)
     payday  = models.DateTimeField(null=True, blank=True)
-    finalDate = models.DateTimeField(null=True, blank=True)
+    final_date = models.DateTimeField(null=True, blank=True)
     price = models.FloatField(null=True, blank=True)
     payment = models.FloatField(null=True, blank=True)
-    transactionDate = models.DateTimeField(null=True, blank=True)
-    transactionState = models.CharField(max_length=1024, null=True, blank=True) #Started, Canceled or Finished
+    transaction_date = models.DateTimeField(null=True, blank=True)
+    transaction_state = models.CharField(max_length=1024, null=True, blank=True) #Started, Canceled or Finished
 
 class Score(models.Model):
-    idClient = models.IntegerField(null=True, blank=True)
+    id_client = models.IntegerField(null=True, blank=True)
     description = models.CharField(max_length=1024, null=True, blank=True)
     score = models.IntegerField(null=True, blank=True)
-    idPlace = models.IntegerField(null=True, blank=True)
-
+    id_place = models.IntegerField(null=True, blank=True)

@@ -162,10 +162,10 @@ def create_score(self, request):
         self.request.session.create()
     serializer = CreateScoreSerializer(data=request.data)
     if serializer.is_valid():
-        idClient = serializer.validated_data.get("idClient")
+        idClient = serializer.validated_data.get("id_client")
         description = serializer.validated_data.get("description")
         score = serializer.validated_data.get("score")
-        idPlace = serializer.validated_data.get("idPlace")
+        idPlace = serializer.validated_data.get("id_place")
 
         score_obj = Score(
             idClient = idClient, 

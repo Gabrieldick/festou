@@ -65,7 +65,7 @@ def transaction_id(self,request, id):
 
 def score_id(self, request, id_place):
     try:
-        scores = Score.objects.filter(idPlace=id_place)
+        scores = Score.objects.filter(id_place=id_place)
         score_data = [{"name": User.objects.get(pk=score.idClient).first_name, "description": score.description, "score": score.score} for score in scores]
         return JsonResponse(score_data, safe=False)
     except Score.DoesNotExist:

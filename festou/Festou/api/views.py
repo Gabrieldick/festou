@@ -45,24 +45,24 @@ class UserTransactionsReceived(generics.ListCreateAPIView): #Transações na qua
 
 class EditPlace(APIView):
     def put(self, request, place_id):
-        edit_place(self, request, place_id)
+        return edit_place(self, request, place_id)
 
 class DeletePlace(APIView):
     def delete(self, request, place_id):
-        delete_place(self, request, place_id)
+        return delete_place(self, request, place_id)
 
 class CreateScore(APIView):
     def post(self, request):
-        create_score(self, request)
+        return create_score(self, request)
 
 class GetScoreByID(APIView):
     def get(self, request, id_place):
-        score_id(self, request, id_place)
+        return score_id(self, request, id_place)
 
 class Chargeback(APIView):
     def post(self, request):
-        chargeback(self, request)
+        return chargeback(self, request)
 
 class LoginUserView(generics.CreateAPIView): 
     def post(self, request):
-        login_user(self, request)
+        return login_user(self, request)

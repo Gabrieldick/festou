@@ -168,10 +168,10 @@ def create_score(self, request):
         idPlace = serializer.validated_data.get("id_place")
 
         score_obj = Score(
-            idClient = idClient, 
+            id_client = idClient, 
             description = description,
             score = score,
-            idPlace = idPlace,
+            id_place = idPlace,
             )
         score_obj.save()
         return Response({'message': 'Score created successfully.'}, status=status.HTTP_201_CREATED)

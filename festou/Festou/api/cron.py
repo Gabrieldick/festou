@@ -6,7 +6,7 @@ from datetime import datetime
 def SchedulerBalance():
     transactions = Transaction.objects.all()  
     for transaction in transactions:
-        if datetime.now().date() >= transaction.payday.date() and transaction.transactionState == 'Started':
+        if datetime.now().date() >= transaction.payday and transaction.transactionState == 'Started':
             place = Place.objects.get(pk=transaction.id_place)
             id_owner = place.id_owner
             owner = User.objects.get(pk=id_owner)

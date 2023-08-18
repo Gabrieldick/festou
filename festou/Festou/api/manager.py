@@ -1,15 +1,15 @@
-import hashlib
-from .serializer import CreatePlaceSerializer, CreateUserSerializer, IdUserSerializer, CreateTransactionSerializer, ReportTransactionSerializer, PlaceSerializer, CreateScoreSerializer
+from .serializer import  IdUserSerializer, ReportTransactionSerializer
 from .models import User, Place, Transaction, Score
 from rest_framework.response import Response
 from rest_framework import status
 from django.http import JsonResponse
 from datetime import datetime, timedelta
+import hashlib
 
 def create_user(self, request): 
     if not self.request.session.exists(self.request.session.session_key):
         self.request.session.create()
-    serializer = CreateUserSerializer(data=request.data)
+    serializer = self.serializer_class(data=request.data)
     if serializer.is_valid(): #verifica se o JSON enviado condiz com os dados esperados
         nome = serializer.validated_data.get("first_name")
         sobrenome = serializer.validated_data.get("last_name") 
@@ -23,6 +23,7 @@ def create_user(self, request):
         conta = serializer.validated_data.get("account")
         agencia = serializer.validated_data.get("agency")
         balance = 0.0
+        blocked = False
         queryset = User.objects.filter(cpf = cpf) #Realização de verificações para não serem criadas duas contas com mesmo email ou cpf
         if queryset.exists():
             return Response({'description': 'CPF or Email already linked to an existing account. Please try again.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -40,7 +41,8 @@ def create_user(self, request):
                     bank = banco,
                     account = conta,
                     agency = agencia,
-                    balance = balance
+                    balance = balance,
+                    blocked = blocked
                     )
         user.save() #Salva o usuário na database
         return Response(IdUserSerializer(user).data,status=status.HTTP_201_CREATED)
@@ -56,7 +58,7 @@ def add_balance(self, id, balance):
 def create_place(self, request):
     if not self.request.session.exists(self.request.session.session_key):
         self.request.session.create()
-    serializer = CreatePlaceSerializer(data=request.data)
+    serializer = self.serializer_class(data=request.data)
     if serializer.is_valid():
         name = serializer.validated_data.get("name")
         price = serializer.validated_data.get("price") 
@@ -89,7 +91,7 @@ def edit_place(self, request, place_id):
         # Verificar se o usuário é o proprietário do lugar
         if place.id_owner != request.user.id:
             return Response({'message': 'You are not the owner of this place.'}, status=status.HTTP_403_FORBIDDEN)   
-        serializer = PlaceSerializer(place, data=request.data)
+        serializer = self.serializer_class(place, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
@@ -112,7 +114,7 @@ def delete_place(self, request, place_id):
 def create_transaction(self, request):
     if not self.request.session.exists(self.request.session.session_key):
         self.request.session.create()
-    serializer = CreateTransactionSerializer(data=request.data)
+    serializer = self.serializer_class(data=request.data)
     if serializer.is_valid():
         id_client = serializer.validated_data.get("id_client")
         id_place = serializer.validated_data.get("id_place")
@@ -160,23 +162,23 @@ def get_user_transactions_received(self, request, id):
 def create_score(self, request):
     if not self.request.session.exists(self.request.session.session_key):
         self.request.session.create()
-    serializer = CreateScoreSerializer(data=request.data)
+    serializer = self.serializer_class(data=request.data)
     if serializer.is_valid():
-        idClient = serializer.validated_data.get("id_client")
+        idClient = serializer.validated_data.get("idClient")
         description = serializer.validated_data.get("description")
         score = serializer.validated_data.get("score")
-        idPlace = serializer.validated_data.get("id_place")
+        idPlace = serializer.validated_data.get("idPlace")
 
         score_obj = Score(
-            id_client = idClient, 
+            idClient = idClient, 
             description = description,
             score = score,
-            id_place = idPlace,
+            idPlace = idPlace,
             )
         score_obj.save()
         return Response({'message': 'Score created successfully.'}, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+    
 def encrypt_password(password):
     hash_object = hashlib.sha256() # Criando um objeto hash SHA-256
     password_bytes = password.encode('utf-8')# Convertendo a senha em bytes

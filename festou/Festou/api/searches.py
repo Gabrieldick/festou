@@ -1,4 +1,4 @@
-from .serializer import PlaceSerializer, UserSerializer, PlaceSerializer, CreateTransactionSerializer
+from .serializer import UserSerializer, PlaceSerializer, CreateTransactionSerializer
 from .models import User, Place, Transaction, Score
 from rest_framework.response import Response
 from rest_framework import status
@@ -16,23 +16,33 @@ def place(self, request):
         location = serializer.validated_data.get("location")
         places_loc = Place.objects.filter(location__contains=location) 
 
-        initialPrice = serializer.validated_data.get("initialPrice")
+        initialPrice = serializer.validated_data.get("initial_price")
         places_initPrice = Place.objects.filter(price__gte=initialPrice) #filtra todos os objetos com price maior que o preço inicial
 
-        finalPrice = serializer.validated_data.get("finalPrice")
+        finalPrice = serializer.validated_data.get("final_price")
         places_finalPrice = Place.objects.filter(price__lte=finalPrice) #filtra todos os objetos com price menor que o preço final
 
         capacity = serializer.validated_data.get("capacity")
         places_capacity = Place.objects.filter(capacity__gte=capacity)
 
+        id_user = serializer.validated_data.get("id_user")
+        places_user = Place.objects.filter(id_owner=id_user) 
+
+        places_valid = Place.objects.exclude(checked=1) 
+
         #verifica se as informações devem ser utilizadas e pega apenas a intersecção dos locais filtrados
         places = places.intersection(places_loc)
+        places = places.intersection(places_valid)
         if initialPrice != 0:
             places = places.intersection(places_initPrice)
         if finalPrice != 0:
             places = places.intersection(places_finalPrice)
         if capacity != 0:
             places = places.intersection(places_capacity)
+        if id_user != 0:
+            places = places.union(places_user)
+
+        
 
         serializer = PlaceSerializer(places, many=True)
 

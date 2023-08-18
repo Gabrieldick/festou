@@ -14,18 +14,13 @@ from datetime import datetime, timedelta
 
 # Create your views here.
 
-#retorna todos os usuários
-class UserView(generics.ListCreateAPIView): 
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-
 class CreateUserView(generics.CreateAPIView): 
     serializer_class = CreateUserSerializer
     def post(self, request):
         if not self.request.session.exists(self.request.session.session_key):
             self.request.session.create()
         serializer = self.serializer_class(data=request.data)
-        if serializer.is_valid():
+        if serializer.is_valid(): #verifica se o JSON enviado condiz com os dados esperados
             nome = serializer.validated_data.get("firstName")
             sobrenome = serializer.validated_data.get("lastName") 
             email = serializer.validated_data.get("email")
@@ -38,7 +33,7 @@ class CreateUserView(generics.CreateAPIView):
             conta = serializer.validated_data.get("account")
             agencia = serializer.validated_data.get("agency")
             balance = 0.0
-            queryset = User.objects.filter(cpf = cpf)
+            queryset = User.objects.filter(cpf = cpf)  #Realização de verificações para não serem criadas duas contas com mesmo email ou cpf
             if queryset.exists():
                 return Response({'description': 'CPF or Email already linked to an existing account. Please try again.'}, status=status.HTTP_400_BAD_REQUEST)
             queryset = User.objects.filter(email = email)
@@ -57,21 +52,21 @@ class CreateUserView(generics.CreateAPIView):
                         agency = agencia,
                         balance = balance
                         )
-            user.save()
+            user.save() #Salva o usuário na database
             return Response(IdUserSerializer(user).data,status=status.HTTP_201_CREATED)
         return Response({'description': 'Invalid data...'}, status=status.HTTP_400_BAD_REQUEST)
     
 class LoginUserView(generics.CreateAPIView): 
     serializer_class = LoginUserSerializer
-    def post(self, request):
+    def post(self, request): 
         if not self.request.session.exists(self.request.session.session_key):
             self.request.session.create()
         serializer = self.serializer_class(data=request.data)
-        if serializer.is_valid():
+        if serializer.is_valid(): #verifica se o JSON enviado condiz com os dados esperados
             email = serializer.validated_data.get("email")  
             senha = serializer.validated_data.get("password")
             senha = encrypt_password(senha)
-            queryset = User.objects.filter(email = email)
+            queryset = User.objects.filter(email = email) #Filtra usuário pelo email, dado que é único por conta
             if queryset.exists():
                 user = queryset[0]
                 if user.password == senha:
@@ -82,7 +77,7 @@ class LoginUserView(generics.CreateAPIView):
                 return Response({'description': 'Email or password not found. Please try again.'}, status=status.HTTP_401_UNAUTHORIZED)
         return Response({'description': 'Invalid data...'}, status=status.HTTP_400_BAD_REQUEST)
 
-class CreatePlaceView(generics.CreateAPIView): 
+class CreatePlaceView(generics.CreateAPIView):  #Funcionamento análogo à outras funções de criação
     serializer_class = CreatePlaceSerializer
     def post(self, request):
         if not self.request.session.exists(self.request.session.session_key):
@@ -125,21 +120,21 @@ class PlaceSearchView(generics.ListCreateAPIView):
         if serializer.is_valid():
 
             nome = serializer.validated_data.get("name")
-            places = Place.objects.filter(name__contains=nome)
+            places = Place.objects.filter(name__contains=nome) #filtra todos os objetos da classe Place que contenham parte ou todo o nome passado
 
             location = serializer.validated_data.get("location")
             places_loc = Place.objects.filter(location__contains=location)
 
             initialPrice = serializer.validated_data.get("initialPrice")
-            places_initPrice = Place.objects.filter(price__gte=initialPrice)
+            places_initPrice = Place.objects.filter(price__gte=initialPrice) #filtra todos os objetos com price maior que o preço inicial
 
             finalPrice = serializer.validated_data.get("finalPrice")
-            places_finalPrice = Place.objects.filter(price__lte=finalPrice)
+            places_finalPrice = Place.objects.filter(price__lte=finalPrice) #filtra todos os objetos com price menor que o preço final
 
             capacity = serializer.validated_data.get("capacity")
             places_capacity = Place.objects.filter(capacity__gte=capacity)
 
-
+            #verifica se as informações devem ser utilizadas e pega apenas a intersecção dos locais filtrados
             places = places.intersection(places_loc)
             if initialPrice != 0:
                 places = places.intersection(places_initPrice)
@@ -152,10 +147,6 @@ class PlaceSearchView(generics.ListCreateAPIView):
 
             return Response(serializer.data, status=200)
         return Response({'description': 'Invalid data...'}, status=status.HTTP_400_BAD_REQUEST)
-
-class PlaceView(generics.ListCreateAPIView): 
-    queryset = Place.objects.all()
-    serializer_class = PlaceSerializer
 
 class SearchUserId(generics.ListCreateAPIView):
     def get(self, request, id, *args, **kwargs):
@@ -202,7 +193,7 @@ class UserTransactionsReceived(generics.ListCreateAPIView): #Transações na qua
         except Place.DoesNotExist: 
             return JsonResponse({'message': 'The user does not exist'}, status=status.HTTP_404_NOT_FOUND)
 
-class CreateTransaction(generics.ListCreateAPIView):
+class CreateTransaction(generics.ListCreateAPIView): #Funcionamento análogo à outras funções de criação
     serializer_class = CreateTransactionSerializer
     queryset = Transaction.objects.all()
 
@@ -219,7 +210,7 @@ class CreateTransaction(generics.ListCreateAPIView):
             finalDate = serializer.validated_data.get("finalDate")
 
 
-            days_to_subtract = 7
+            days_to_subtract = 7 #Quantidade de dias antes do evento que será liberado o dinheiro 
             payday = initialDate - timedelta(days=days_to_subtract)
 
             atual_place = Place.objects.get(pk = id_place)
@@ -244,24 +235,13 @@ class CreateTransaction(generics.ListCreateAPIView):
             return Response(status=status.HTTP_201_CREATED)
         return Response({'description': 'Invalid data...'}, status=status.HTTP_400_BAD_REQUEST)
 
-class Balance(generics.ListCreateAPIView):
-    def get(self, request, id, balance, *args, **kwargs):
-        try:
-            search = User.objects.get(pk = id)
-            search.balance = float(balance) 
-            data_response = {
-                "balance" : float(balance)
-            }
-            return JsonResponse(data_response)
-        except Place.DoesNotExist: 
-            return JsonResponse({'message': 'The User does not exist'}, status=status.HTTP_404_NOT_FOUND)  
-
-    def addBalance(self, id, balance):
-        search = User.objects.get(pk = id)
-        if search.balance == None:
-                search.balance = 0.0   
-        search.balance = search.balance + float(balance)
-        search.save()
+class Balance(generics.ListCreateAPIView): #Atualiza o valor em conta do usuário
+    def addBalance(self, id, balance): 
+        user = User.objects.get(pk = id)
+        if user.balance == None:
+                user.balance = 0.0   
+        user.balance = user.balance + float(balance)
+        user.save()
 '''
 @background(schedule=5)  # A tarefa será verificada a cada hora
 def SchedulerBalance():
@@ -276,7 +256,7 @@ class SchedulerTransaction(APIView):
     def get(self, request, id_transaction, *args, **kwargs):
         try:
             transaction = Transaction.objects.get(pk=id_transaction)  
-            # Verificar se o payday foi atingido
+            # Verificar se o payday foi atingido e transicionar de local o dinheiro
             if datetime.now().date() >= transaction.payday.date():
                 id_owner = transaction.id_advertiser
                 owner = User.objects.get(pk=id_owner)
@@ -306,17 +286,16 @@ class Chargeback(APIView):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
             id_transaction = serializer.validated_data.get('id_transaction')
-            if id_transaction is None:            
-                id_transaction = request.data.get('id_transaction')
+            if id_transaction is None:            #verifica se está recebendo as informações necessárias
                 return Response({'error': 'id_transaction is required.'}, status=400)
-            try:
+            try: #verifica se esta transação existe
                 transaction = Transaction.objects.get(pk=id_transaction)
             except Transaction.DoesNotExist:
                 return Response({'error': 'Transaction not found.'}, status=404)
 
             if datetime.now().date() > transaction.payday.date():
                 client = get_object_or_404(User, pk=transaction.id_client)
-                Balance.addBalance(self,id=transaction.id_client, balance=transaction.payment)
+                Balance.addBalance(self,id=transaction.id_client, balance=transaction.payment) #devolve o dinheiro para o comprador e altera o status da transação
 
                 transaction.transactionState = "Canceled"
                 transaction.save()

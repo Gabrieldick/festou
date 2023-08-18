@@ -68,7 +68,7 @@ def create_place(self, request):
         description = serializer.validated_data.get("description")
         terms_of_use = serializer.validated_data.get("terms_of_use")
         queryset = Place.objects.filter(location = location)
-        checked = None
+        checked = 0
         if queryset.exists():
             return Response({'description': 'Location already linked to an existing place. Please try again.'}, status=status.HTTP_400_BAD_REQUEST)
         place = Place(

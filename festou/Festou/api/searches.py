@@ -62,7 +62,7 @@ def user_places_id(self, request, id):
         places = Place.objects.filter(id_owner=id)
         response_data = PlaceSerializer(places, many=True).data
         return JsonResponse(response_data, status=200)
-    except User.DoesNotExist: 
+    except Place.DoesNotExist: 
         return JsonResponse({'message': 'The User does not exist'}, status=status.HTTP_404_NOT_FOUND)
 
 def place_id(self, request, id):

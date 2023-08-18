@@ -42,8 +42,11 @@ class SearchPlaceSerializer(serializers.Serializer):
     name = serializers.CharField(allow_blank=True)
     location = serializers.CharField(allow_blank=True)
     capacity = serializers.IntegerField(allow_null=True)
-    initialPrice = serializers.FloatField(allow_null=True)
-    finalPrice = serializers.FloatField(allow_null=True)
+    initial_price = serializers.FloatField(allow_null=True)
+    final_price = serializers.FloatField(allow_null=True)
+    initial_date = serializers.CharField(allow_null=True)
+    final_date = serializers.CharField(allow_null=True)
+    score = serializers.FloatField(allow_null=True)
 
 class CreatePlaceSerializer(serializers.ModelSerializer):
     class Meta:

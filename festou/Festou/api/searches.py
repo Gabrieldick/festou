@@ -16,10 +16,10 @@ def place(self, request):
         location = serializer.validated_data.get("location")
         places_loc = Place.objects.filter(location__contains=location) 
 
-        initialPrice = serializer.validated_data.get("initialPrice")
+        initialPrice = serializer.validated_data.get("initial_price")
         places_initPrice = Place.objects.filter(price__gte=initialPrice) #filtra todos os objetos com price maior que o preço inicial
 
-        finalPrice = serializer.validated_data.get("finalPrice")
+        finalPrice = serializer.validated_data.get("final_price")
         places_finalPrice = Place.objects.filter(price__lte=finalPrice) #filtra todos os objetos com price menor que o preço final
 
         capacity = serializer.validated_data.get("capacity")

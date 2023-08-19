@@ -28,19 +28,21 @@ def place(self, request):
         id_user = serializer.validated_data.get("id_user")
         places_user = Place.objects.filter(id_owner=id_user) 
 
-        places_valid = Place.objects.exclude(checked=1) 
+        places_valid = Place.objects.filter(checked=1) 
+        
+        places = places.intersection(places_loc)
+
+        places = places.intersection(places_valid)
 
         #verifica se as informações devem ser utilizadas e pega apenas a intersecção dos locais filtrados
-        places = places.intersection(places_loc)
-        places = places.intersection(places_valid)
+        print (nome)
         if initialPrice != 0:
             places = places.intersection(places_initPrice)
         if finalPrice != 0:
             places = places.intersection(places_finalPrice)
         if capacity != 0:
             places = places.intersection(places_capacity)
-        if id_user != 0:
-            places = places.union(places_user)
+
 
         
 

@@ -52,9 +52,6 @@ def create_user(self, request):
 def edit_user(self, request, user_id):
     try:
         user = User.objects.get(pk=user_id)
-        # Verificar se é o usuário 
-        if user_id != request.user.id:
-            return Response({'message': 'You are not the owner of this account.'}, status=status.HTTP_403_FORBIDDEN)   
         serializer = self.serializer_class(user, data=request.data)
         if serializer.is_valid():
             queryset = User.objects.filter(email = email)
@@ -107,9 +104,6 @@ def create_place(self, request):
 def edit_place(self, request, place_id):
     try:
         place = Place.objects.get(pk=place_id)
-        # Verificar se o usuário é o proprietário do lugar
-        if place.id_owner != request.user.id:
-            return Response({'message': 'You are not the owner of this place.'}, status=status.HTTP_403_FORBIDDEN)   
         serializer = self.serializer_class(place, data=request.data)
         if serializer.is_valid():
             queryset = Place.objects.filter(location = place.location)
@@ -125,9 +119,6 @@ def edit_place(self, request, place_id):
 def delete_place(self, request, place_id):
     try:
         place = Place.objects.get(pk=place_id)
-        # Verificar se o usuário é o proprietário do lugar
-        if place.id_owner != request.user.id:
-            return Response({'message': 'You are not the owner of this place.'}, status=status.HTTP_403_FORBIDDEN)
         place.delete()
         return Response({'message': 'Place deleted successfully.'}, status=status.HTTP_204_NO_CONTENT)
     except Place.DoesNotExist:

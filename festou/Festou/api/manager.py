@@ -7,6 +7,12 @@ from datetime import datetime, timedelta
 from django.utils import timezone
 import hashlib
 
+def parse_date(date: str) -> datetime.date:
+    try:
+        return datetime.strptime(date, '%d/%m/%Y')
+    except: 
+        return ""
+
 def create_user(self, request): 
     if not self.request.session.exists(self.request.session.session_key):
         self.request.session.create()
@@ -131,8 +137,8 @@ def create_transaction(self, request):
     if serializer.is_valid():
         id_client = serializer.validated_data.get("id_client")
         id_place = serializer.validated_data.get("id_place")
-        initial_date = serializer.validated_data.get("initial_date")
-        final_date = serializer.validated_data.get("final_date")
+        initial_date = parse_date(serializer.validated_data.get("initial_date"))
+        final_date = parse_date(serializer.validated_data.get("final_date"))
 
         #vendo se faz sentido
         if initial_date < timezone.now().date() or final_date < initial_date:
@@ -189,16 +195,16 @@ def create_score(self, request):
         self.request.session.create()
     serializer = self.serializer_class(data=request.data)
     if serializer.is_valid():
-        idClient = serializer.validated_data.get("idClient")
+        idClient = serializer.validated_data.get("id_client")
         description = serializer.validated_data.get("description")
         score = serializer.validated_data.get("score")
-        idPlace = serializer.validated_data.get("idPlace")
+        idPlace = serializer.validated_data.get("id_place")
 
         score_obj = Score(
-            idClient = idClient, 
+            id_client = idClient, 
             description = description,
             score = score,
-            idPlace = idPlace,
+            id_place = idPlace,
             )
         score_obj.save()
         return Response({'message': 'Score created successfully.'}, status=status.HTTP_201_CREATED)

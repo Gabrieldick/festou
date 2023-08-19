@@ -1,3 +1,4 @@
+from .manager import parse_date
 from .serializer import UserSerializer, PlaceSerializer, CreateTransactionSerializer
 from .models import User, Place, Transaction, Score
 from rest_framework.response import Response
@@ -27,6 +28,9 @@ def place(self, request):
 
         id_user = serializer.validated_data.get("id_user")
         places_user = Place.objects.filter(id_owner=id_user) 
+
+        initial_date = parse_date(serializer.validated_data.get("initial_date"))
+        final_date = parse_date(serializer.validated_data.get("final_date"))
 
         places_valid = Place.objects.filter(checked=1) 
 

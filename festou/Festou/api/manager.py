@@ -9,9 +9,9 @@ import hashlib
 
 def parse_date(date: str) -> datetime.date:
     try:
-        return datetime.strptime(date, '%d/%m/%Y')
-    except: 
-        return ""
+        return datetime.strptime(date, '%d/%m/%Y').date()
+    except ValueError: 
+        return None
 
 def create_user(self, request): 
     if not self.request.session.exists(self.request.session.session_key):
@@ -137,26 +137,27 @@ def create_transaction(self, request):
     if serializer.is_valid():
         id_client = serializer.validated_data.get("id_client")
         id_place = serializer.validated_data.get("id_place")
-        initial_date = parse_date(serializer.validated_data.get("initial_date"))
-        final_date = parse_date(serializer.validated_data.get("final_date"))
+        initial_date = serializer.validated_data.get("initial_date")
+        final_date = serializer.validated_data.get("final_date")
+
 
         #vendo se faz sentido
-        if initial_date < timezone.now().date() or final_date < initial_date:
+        if parse_date(initial_date) < timezone.now().date() or parse_date(final_date) < parse_date(initial_date):
             return Response({'description': 'Invalid date range...'}, status=status.HTTP_400_BAD_REQUEST)
         overlapping_transactions = Transaction.objects.filter(
             id_place=id_place,
-            initial_date__lte=final_date,
-            final_date__gte=initial_date,
+            initial_date__lte=parse_date(final_date),
+            final_date__gte=parse_date(initial_date),
         )
         if overlapping_transactions.exists():
             return Response({'description': 'Date conflict with existing transactions...'}, status=status.HTTP_400_BAD_REQUEST)
 
         days_to_subtract = 7 #Quantidade de dias antes do evento que será liberado o dinheiro 
-        payday = initial_date - timedelta(days=days_to_subtract)
+        payday = parse_date(initial_date) - timedelta(days=days_to_subtract)
         atual_place = Place.objects.get(pk = id_place)
         price = atual_place.price
         id_advertiser = atual_place.id_owner
-        delta_time = final_date - initial_date
+        delta_time = parse_date(final_date) - parse_date(initial_date)
         payment =(int(delta_time.days)+1) * price
         transaction = Transaction(
             id_place = id_place, 

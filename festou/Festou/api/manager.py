@@ -54,7 +54,7 @@ def edit_user(self, request, user_id):
         user = User.objects.get(pk=user_id)
         serializer = self.serializer_class(user, data=request.data)
         if serializer.is_valid():
-            queryset = User.objects.filter(email = email)
+            queryset = User.objects.filter(email = user.email)
             if queryset.exists():
                 return Response({'description': 'CPF or Email already linked to an existing account. Please try again.'}, status=status.HTTP_400_BAD_REQUEST)
             serializer.save()

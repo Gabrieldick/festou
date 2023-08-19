@@ -1,5 +1,5 @@
 from rest_framework import generics
-from .serializer import CreatePlaceSerializer, SearchPlaceSerializer, LoginUserSerializer, CreateScoreSerializer, CreateTransactionSerializer, CreateUserSerializer, EditUserSerializer
+from .serializer import CreatePlaceSerializer, SearchPlaceSerializer, LoginUserSerializer, CreateScoreSerializer, CreateTransactionSerializer, CreateUserSerializer, EditUserSerializer, WithdrawMoneySerializer, CreateChargebackSerializer
 from rest_framework.views import APIView
 from .actions import *
 from .searches import * 
@@ -53,6 +53,11 @@ class EditUser(APIView):
     serializer_class = EditUserSerializer
     def put(self, request, user_id):
         return edit_user(self, request, user_id)
+    
+class WithdrawMoney(APIView):
+    serializer_class = WithdrawMoneySerializer
+    def post(self, resquet):
+        return withdraw_money(self, resquet)
 
 class EditPlace(APIView):
     serializer_class = PlaceSerializer

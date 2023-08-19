@@ -41,7 +41,7 @@ class IdUserSerializer(serializers.ModelSerializer):
 class PlaceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Place
-        fields = ('id','name','price','location','capacity','description')
+        fields = ('id','name','price','location','capacity','description','terms_of_use')
 
 class SearchPlaceSerializer(serializers.Serializer):
     name = serializers.CharField(allow_blank=True)

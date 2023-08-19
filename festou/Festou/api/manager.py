@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.http import JsonResponse
 from datetime import datetime, timedelta
+from django.utils import timezone
 import hashlib
 
 def create_user(self, request): 
@@ -48,6 +49,21 @@ def create_user(self, request):
         return Response(IdUserSerializer(user).data,status=status.HTTP_201_CREATED)
     return Response({'description': 'Invalid data...'}, status=status.HTTP_400_BAD_REQUEST)    
 
+def edit_user(self, request, user_id):
+    try:
+        user = User.objects.get(pk=user_id)
+        serializer = self.serializer_class(user, data=request.data)
+        if serializer.is_valid():
+            queryset = User.objects.filter(email = email)
+            if queryset.exists():
+                return Response({'description': 'CPF or Email already linked to an existing account. Please try again.'}, status=status.HTTP_400_BAD_REQUEST)
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    except Place.DoesNotExist:
+        return Response({'message': 'Place not found.'}, status=status.HTTP_404_NOT_FOUND)
+
 def add_balance(self, id, balance): 
         user = User.objects.get(pk = id)
         if user.balance == None:
@@ -64,11 +80,11 @@ def create_place(self, request):
         price = serializer.validated_data.get("price") 
         location = serializer.validated_data.get("location")
         capacity = serializer.validated_data.get("capacity")
-        id_owner = request.user.id #serializer.validated_data.get("id_owner")
+        id_owner = serializer.validated_data.get("id_owner")
         description = serializer.validated_data.get("description")
         terms_of_use = serializer.validated_data.get("terms_of_use")
-        queryset = Place.objects.filter(location = location)
         checked = 0
+        queryset = Place.objects.filter(location = location)
         if queryset.exists():
             return Response({'description': 'Location already linked to an existing place. Please try again.'}, status=status.HTTP_400_BAD_REQUEST)
         place = Place(
@@ -88,11 +104,11 @@ def create_place(self, request):
 def edit_place(self, request, place_id):
     try:
         place = Place.objects.get(pk=place_id)
-        # Verificar se o usuário é o proprietário do lugar
-        if place.id_owner != request.user.id:
-            return Response({'message': 'You are not the owner of this place.'}, status=status.HTTP_403_FORBIDDEN)   
         serializer = self.serializer_class(place, data=request.data)
         if serializer.is_valid():
+            queryset = Place.objects.filter(location = place.location)
+            if queryset.exists():
+                return Response({'description': 'Location already linked to an existing place. Please try again.'}, status=status.HTTP_400_BAD_REQUEST)
             serializer.save()
             return Response(serializer.data)
         else:
@@ -103,9 +119,6 @@ def edit_place(self, request, place_id):
 def delete_place(self, request, place_id):
     try:
         place = Place.objects.get(pk=place_id)
-        # Verificar se o usuário é o proprietário do lugar
-        if place.id_owner != request.user.id:
-            return Response({'message': 'You are not the owner of this place.'}, status=status.HTTP_403_FORBIDDEN)
         place.delete()
         return Response({'message': 'Place deleted successfully.'}, status=status.HTTP_204_NO_CONTENT)
     except Place.DoesNotExist:
@@ -120,6 +133,18 @@ def create_transaction(self, request):
         id_place = serializer.validated_data.get("id_place")
         initial_date = serializer.validated_data.get("initial_date")
         final_date = serializer.validated_data.get("final_date")
+
+        #vendo se faz sentido
+        if initial_date < timezone.now().date() or final_date < initial_date:
+            return Response({'description': 'Invalid date range...'}, status=status.HTTP_400_BAD_REQUEST)
+        overlapping_transactions = Transaction.objects.filter(
+            id_place=id_place,
+            initial_date__lte=final_date,
+            final_date__gte=initial_date,
+        )
+        if overlapping_transactions.exists():
+            return Response({'description': 'Date conflict with existing transactions...'}, status=status.HTTP_400_BAD_REQUEST)
+
         days_to_subtract = 7 #Quantidade de dias antes do evento que será liberado o dinheiro 
         payday = initial_date - timedelta(days=days_to_subtract)
         atual_place = Place.objects.get(pk = id_place)

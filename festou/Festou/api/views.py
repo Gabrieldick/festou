@@ -1,5 +1,5 @@
 from rest_framework import generics
-from .serializer import CreatePlaceSerializer, SearchPlaceSerializer, LoginUserSerializer, CreateScoreSerializer, CreateTransactionSerializer, CreateUserSerializer
+from .serializer import CreatePlaceSerializer, SearchPlaceSerializer, LoginUserSerializer, CreateScoreSerializer, CreateTransactionSerializer, CreateUserSerializer, EditUserSerializer
 from rest_framework.views import APIView
 from .actions import *
 from .searches import * 
@@ -28,7 +28,7 @@ class PlaceSearchView(generics.ListCreateAPIView):
 class SearchUserId(generics.ListCreateAPIView):
     def get(self, request, id, *args, **kwargs):
         return user_id(self, request, id)
-    
+
 class UserPlacesId(generics.ListCreateAPIView):
     def get(self, request, id, *args, **kwargs):
         return user_places_id(self, request, id)
@@ -48,6 +48,11 @@ class UserTransactionsMade(generics.ListCreateAPIView): #Transações na qual o 
 class UserTransactionsReceived(generics.ListCreateAPIView): #Transações na qual o usuário é o anunciante
     def get(self, request, id, *args, **kwargs):
         return get_user_transactions_received(self, request, id)
+
+class EditUser(APIView):
+    serializer_class = EditUserSerializer
+    def put(self, request, user_id):
+        return edit_user(self, request, user_id)
 
 class EditPlace(APIView):
     serializer_class = PlaceSerializer

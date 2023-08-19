@@ -11,6 +11,11 @@ class CreateUserSerializer(serializers.ModelSerializer):
         model = User
         fields = ('first_name','last_name','email','cpf','phone','password','birthdate','bank','account','agency')
 
+class EditUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('first_name','last_name','email','phone','password','birthdate','bank','account','agency')
+
 class CreateTransactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Transaction
@@ -36,7 +41,7 @@ class IdUserSerializer(serializers.ModelSerializer):
 class PlaceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Place
-        fields = ('id','name','price','location','capacity','description')
+        fields = ('id','name','price','location','capacity','description','terms_of_use')
 
 class SearchPlaceSerializer(serializers.Serializer):
     name = serializers.CharField(allow_blank=True)
@@ -51,7 +56,7 @@ class SearchPlaceSerializer(serializers.Serializer):
 class CreatePlaceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Place
-        fields = ('name','price','location','capacity','description', 'terms_of_use')
+        fields = ('id_owner','name','price','location','capacity','description', 'terms_of_use')
 
 class DeletePlaceSerializer(serializers.ModelSerializer):
     class Meta:

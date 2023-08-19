@@ -56,15 +56,18 @@ def user_id(self, request, id):
         search = User.objects.get(pk = id)
         response_data = UserSerializer(search).data
         return JsonResponse(response_data, status=200)
-    except Place.DoesNotExist: 
+    except User.DoesNotExist: 
         return JsonResponse({'message': 'The User does not exist'}, status=status.HTTP_404_NOT_FOUND)
-    
+
 def user_places_id(self, request, id):
     try: 
         places = Place.objects.filter(id_owner=id)
-        response_data = PlaceSerializer(places, many=True).data
-        return JsonResponse(response_data, status=200)
-    except Place.DoesNotExist: 
+        if places.exists():
+            response_data = PlaceSerializer(places, many=True).data
+            return JsonResponse(response_data, status=200, safe=False)
+        else:
+            return JsonResponse({'message': 'No places found for the specified User'}, status=status.HTTP_404_NOT_FOUND)
+    except User.DoesNotExist:
         return JsonResponse({'message': 'The User does not exist'}, status=status.HTTP_404_NOT_FOUND)
 
 def place_id(self, request, id):
@@ -80,8 +83,8 @@ def transaction_id(self,request, id):
         search = Transaction.objects.get(pk = id)
         response_data = CreateTransactionSerializer(search).data      
         return JsonResponse(response_data)
-    except Place.DoesNotExist: 
-        return JsonResponse({'message': 'The place does not exist'}, status=status.HTTP_404_NOT_FOUND)
+    except Transaction.DoesNotExist: 
+        return JsonResponse({'message': 'The transaction does not exist'}, status=status.HTTP_404_NOT_FOUND)
 
 def score_id(self, request, id_place):
     try:

@@ -7,6 +7,7 @@ urlpatterns = [
     path('v1/search', views.PlaceSearchView.as_view()),
     path('v1/place', views.CreatePlaceView.as_view()),
     path('v1/editPlace/<int:place_id>',views.EditPlace.as_view()),
+    path('v1/editUser/<int:user_id>',views.EditUser.as_view()),
     path('v1/deletePlace/<int:place_id>', views.DeletePlace.as_view()),
     path('v1/place/<int:id>', views.SearchPlaceId.as_view()),
     path('v1/userPlaces/<int:id>', views.UserPlacesId.as_view()),

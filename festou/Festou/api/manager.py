@@ -82,7 +82,7 @@ def create_place(self, request):
         price = serializer.validated_data.get("price") 
         location = serializer.validated_data.get("location")
         capacity = serializer.validated_data.get("capacity")
-        id_owner = request.user.id #serializer.validated_data.get("id_owner")
+        id_owner = serializer.validated_data.get("id_owner")
         description = serializer.validated_data.get("description")
         terms_of_use = serializer.validated_data.get("terms_of_use")
         checked = 0

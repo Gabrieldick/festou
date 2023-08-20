@@ -29,6 +29,9 @@ def place(self, request):
         id_user = serializer.validated_data.get("id_user")
         places_user = Place.objects.filter(id_owner=id_user) 
 
+        score = serializer.validated_data.get("score")
+        places_score = Place.objects.filter(score__gte=score)
+
         initial_date = parse_date(serializer.validated_data.get("initial_date"))
         final_date = parse_date(serializer.validated_data.get("final_date"))
 
@@ -45,6 +48,8 @@ def place(self, request):
             places = places.intersection(places_finalPrice)
         if capacity != 0:
             places = places.intersection(places_capacity)
+        if capacity != 0:
+            places = places.intersection(places_score)
 
 
         
@@ -61,6 +66,9 @@ def id_place_list(self, request):
     if serializer.is_valid():
         
         id_list = serializer.validated_data.get("id_list")
+        if len(id_list) == 0:
+            return Response(status=200)
+        
         places = Place.objects.filter(id = id_list[0])
         for id_place in id_list:
             place = Place.objects.filter(id = id_place)

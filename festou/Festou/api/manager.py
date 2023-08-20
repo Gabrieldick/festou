@@ -5,6 +5,7 @@ from rest_framework import status
 from django.http import JsonResponse
 from datetime import datetime, timedelta
 from django.utils import timezone
+from django.core.exceptions import ObjectDoesNotExist
 import hashlib
 
 def parse_date(date: str) -> datetime.date:
@@ -101,7 +102,10 @@ def create_place(self, request):
                     description = description,
                     id_owner = id_owner,
                     terms_of_use = terms_of_use,
-                    checked = checked
+                    checked = checked,
+                    total_score = 0,
+                    score = 0,
+                    avaliations = 0
                     )
         place.save()
         return Response(status=status.HTTP_201_CREATED)
@@ -200,7 +204,7 @@ def create_score(self, request):
         description = serializer.validated_data.get("description")
         score = serializer.validated_data.get("score")
         idPlace = serializer.validated_data.get("id_place")
-
+        print(idPlace)
         score_obj = Score(
             id_client = idClient, 
             description = description,
@@ -208,8 +212,21 @@ def create_score(self, request):
             id_place = idPlace,
             )
         score_obj.save()
+        update_place_score(idPlace, score)
         return Response({'message': 'Score created successfully.'}, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+def update_place_score(id_place, score):
+    print (id_place)
+    try:
+        place = Place.objects.get(pk=id_place)
+        place.score = (place.total_score + score)/float(place.avaliations+1)
+        place.total_score += score
+        place.avaliations += 1
+        place.save()
+        return
+    except ObjectDoesNotExist:
+        return 0
     
 def encrypt_password(password):
     hash_object = hashlib.sha256() # Criando um objeto hash SHA-256

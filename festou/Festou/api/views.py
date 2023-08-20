@@ -91,8 +91,8 @@ class GetScoreByID(APIView):
 
 class Chargeback(APIView):
     serializer_class = CreateChargebackSerializer
-    def post(self, request):
-        return chargeback(self, request)
+    def get(self, request, id_transaction):
+        return chargeback(self, request, id_transaction)
 
 class LoginUserView(generics.CreateAPIView): 
     serializer_class = LoginUserSerializer

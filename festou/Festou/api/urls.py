@@ -25,7 +25,7 @@ urlpatterns = [
     path('v1/getTransactionsMade/<int:id>', views.UserTransactionsMade.as_view()),
     path('v1/getTransactionsReceived/<int:id>', views.UserTransactionsReceived.as_view()),
     
-    path('v1/chargeback', views.Chargeback.as_view()),  
+    path('v1/chargeback/<int:id_transaction>', views.Chargeback.as_view()),  
 
     path('v1/createScore', views.CreateScore.as_view()),
     path('v1/getScore/<int:id_place>', views.GetScoreByID.as_view()),    

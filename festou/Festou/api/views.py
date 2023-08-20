@@ -28,6 +28,7 @@ class IdPlaceListView(generics.ListCreateAPIView):
     serializer_class = IdListSerializer
     def post(self, request):
         return id_place_list(self, request)
+    
 class SearchUserId(generics.ListCreateAPIView):
     def get(self, request, id, *args, **kwargs):
         return user_id(self, request, id)
@@ -43,7 +44,6 @@ class UserTransactionsId(APIView):
 class PlaceTransactionsId(APIView):
     def get(self, request, id, *args, **kwargs):
         return place_transactions_id(self, request, id)
-
 
 class SearchPlaceId(generics.ListCreateAPIView):
     def get(self, request, id, *args, **kwargs):

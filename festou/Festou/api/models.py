@@ -47,6 +47,8 @@ class Transaction(models.Model):
     payment = models.FloatField(null=True, blank=True)
     transaction_date = models.DateField(null=True, blank=True)
     transaction_state = models.CharField(max_length=1024, null=True, blank=True) #Started, Canceled or Finished
+    name = models.CharField(max_length=1024, null=True, blank=True)
+    location = models.CharField(max_length=1024, null=True, blank=True)
 
 class Score(models.Model):
     id_client = models.IntegerField(null=True, blank=True)

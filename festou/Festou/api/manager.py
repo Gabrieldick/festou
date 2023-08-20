@@ -144,7 +144,6 @@ def create_transaction(self, request):
         initial_date = serializer.validated_data.get("initial_date")
         final_date = serializer.validated_data.get("final_date")
 
-
         #vendo se faz sentido
         if parse_date(initial_date) < timezone.now().date() or parse_date(final_date) < parse_date(initial_date):
             return Response({'description': 'Invalid date range...'}, status=status.HTTP_400_BAD_REQUEST)
@@ -173,7 +172,9 @@ def create_transaction(self, request):
             payday = payday,
             payment = payment,
             transaction_date = datetime.now().date(),
-            transaction_state = "Started"
+            transaction_state = "Started",
+            name = atual_place.name,
+            location = atual_place.location
             )
         transaction.save()
         return Response(status=status.HTTP_201_CREATED)

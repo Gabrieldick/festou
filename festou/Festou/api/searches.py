@@ -45,9 +45,27 @@ def place(self, request):
             places = places.intersection(places_finalPrice)
         if capacity != 0:
             places = places.intersection(places_capacity)
-        if id_user != 0:
-            places = places.union(places_user)
-            
+
+
+        
+
+        serializer = PlaceSerializer(places, many=True)
+
+        return Response(serializer.data, status=200)
+    return Response({'description': 'Invalid data...'}, status=status.HTTP_400_BAD_REQUEST)
+
+def id_place_list(self, request):
+    if not self.request.session.exists(self.request.session.session_key):
+        self.request.session.create()
+    serializer = self.serializer_class(data=request.data)
+    if serializer.is_valid():
+        
+        id_list = serializer.validated_data.get("id_list")
+        places = Place.objects.filter(id = id_list[0])
+        for id_place in id_list:
+            place = Place.objects.filter(id = id_place)
+            places = places.union(place)
+
         serializer = PlaceSerializer(places, many=True)
 
         return Response(serializer.data, status=200)

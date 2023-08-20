@@ -1,5 +1,5 @@
 from rest_framework import generics
-from .serializer import CreatePlaceSerializer, SearchPlaceSerializer, LoginUserSerializer, CreateScoreSerializer, CreateTransactionSerializer, CreateUserSerializer, EditUserSerializer, WithdrawMoneySerializer, CreateChargebackSerializer
+from .serializer import CreatePlaceSerializer, SearchPlaceSerializer, LoginUserSerializer, CreateScoreSerializer, CreateTransactionSerializer, CreateUserSerializer, EditUserSerializer, WithdrawMoneySerializer, CreateChargebackSerializer, IdListSerializer
 from rest_framework.views import APIView
 from .actions import *
 from .searches import * 
@@ -14,7 +14,6 @@ class CreatePlaceView(generics.CreateAPIView):  #Funcionamento análogo à outra
     serializer_class = CreatePlaceSerializer
     def post(self, request):
         return create_place(self, request)
-
 class CreateTransaction(APIView): #Funcionamento análogo à outras funções de criação
     serializer_class = CreateTransactionSerializer
     def post(self, request):
@@ -25,6 +24,10 @@ class PlaceSearchView(generics.ListCreateAPIView):
     def post(self, request):
         return place(self, request)
 
+class IdPlaceListView(generics.ListCreateAPIView):
+    serializer_class = IdListSerializer
+    def post(self, request):
+        return id_place_list(self, request)
 class SearchUserId(generics.ListCreateAPIView):
     def get(self, request, id, *args, **kwargs):
         return user_id(self, request, id)
@@ -95,3 +98,4 @@ class LoginUserView(generics.CreateAPIView):
     serializer_class = LoginUserSerializer
     def post(self, request):
         return login_user(self, request)
+

@@ -73,3 +73,6 @@ class CreateScoreSerializer(serializers.ModelSerializer):
     class Meta:
         model = Score
         fields = ('id_place', 'id_client', 'score', 'description')
+
+class IdListSerializer(serializers.Serializer):
+    id_list = serializers.ListField(child=serializers.IntegerField())

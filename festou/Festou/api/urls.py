@@ -16,6 +16,7 @@ urlpatterns = [
     path('v1/deletePlace/<int:place_id>', views.DeletePlace.as_view()),
     path('v1/place/<int:id>', views.SearchPlaceId.as_view()),
     path('v1/placeTransactions/<int:id>', views.PlaceTransactionsId.as_view()),
+    path('v1/IdListPlaces', views.IdPlaceListView.as_view()),
 
     path('v1/withdraw', views.WithdrawMoney.as_view()),
 

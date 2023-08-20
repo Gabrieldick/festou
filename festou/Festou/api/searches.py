@@ -51,9 +51,6 @@ def place(self, request):
         if capacity != 0:
             places = places.intersection(places_score)
 
-
-        
-
         serializer = PlaceSerializer(places, many=True)
 
         return Response(serializer.data, status=200)
@@ -90,11 +87,8 @@ def user_id(self, request, id):
 def user_places_id(self, request, id):
     try: 
         places = Place.objects.filter(id_owner=id)
-        if places.exists():
-            response_data = PlaceSerializer(places, many=True).data
-            return JsonResponse(response_data, status=200, safe=False)
-        else:
-            return JsonResponse({'message': 'No places found for the specified User'}, status=status.HTTP_404_NOT_FOUND)
+        response_data = PlaceSerializer(places, many=True).data
+        return JsonResponse(response_data, status=200, safe=False)
     except User.DoesNotExist:
         return JsonResponse({'message': 'The User does not exist'}, status=status.HTTP_404_NOT_FOUND)
 

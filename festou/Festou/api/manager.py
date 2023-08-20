@@ -7,6 +7,12 @@ from datetime import datetime, timedelta
 from django.utils import timezone
 import hashlib
 
+def parse_date(date: str) -> datetime.date:
+    try:
+        return datetime.strptime(date, '%d/%m/%Y').date()
+    except ValueError: 
+        return None
+
 def create_user(self, request): 
     if not self.request.session.exists(self.request.session.session_key):
         self.request.session.create()
@@ -54,7 +60,7 @@ def edit_user(self, request, user_id):
         user = User.objects.get(pk=user_id)
         serializer = self.serializer_class(user, data=request.data)
         if serializer.is_valid():
-            queryset = User.objects.filter(email = email)
+            queryset = User.objects.filter(email = user.email)
             if queryset.exists():
                 return Response({'description': 'CPF or Email already linked to an existing account. Please try again.'}, status=status.HTTP_400_BAD_REQUEST)
             serializer.save()
@@ -134,23 +140,24 @@ def create_transaction(self, request):
         initial_date = serializer.validated_data.get("initial_date")
         final_date = serializer.validated_data.get("final_date")
 
+
         #vendo se faz sentido
-        if initial_date < timezone.now().date() or final_date < initial_date:
+        if parse_date(initial_date) < timezone.now().date() or parse_date(final_date) < parse_date(initial_date):
             return Response({'description': 'Invalid date range...'}, status=status.HTTP_400_BAD_REQUEST)
         overlapping_transactions = Transaction.objects.filter(
             id_place=id_place,
-            initial_date__lte=final_date,
-            final_date__gte=initial_date,
+            initial_date__lte=parse_date(final_date),
+            final_date__gte=parse_date(initial_date),
         )
         if overlapping_transactions.exists():
             return Response({'description': 'Date conflict with existing transactions...'}, status=status.HTTP_400_BAD_REQUEST)
 
         days_to_subtract = 7 #Quantidade de dias antes do evento que será liberado o dinheiro 
-        payday = initial_date - timedelta(days=days_to_subtract)
+        payday = parse_date(initial_date) - timedelta(days=days_to_subtract)
         atual_place = Place.objects.get(pk = id_place)
         price = atual_place.price
         id_advertiser = atual_place.id_owner
-        delta_time = final_date - initial_date
+        delta_time = parse_date(final_date) - parse_date(initial_date)
         payment =(int(delta_time.days)+1) * price
         transaction = Transaction(
             id_place = id_place, 
@@ -189,16 +196,16 @@ def create_score(self, request):
         self.request.session.create()
     serializer = self.serializer_class(data=request.data)
     if serializer.is_valid():
-        idClient = serializer.validated_data.get("idClient")
+        idClient = serializer.validated_data.get("id_client")
         description = serializer.validated_data.get("description")
         score = serializer.validated_data.get("score")
-        idPlace = serializer.validated_data.get("idPlace")
+        idPlace = serializer.validated_data.get("id_place")
 
         score_obj = Score(
-            idClient = idClient, 
+            id_client = idClient, 
             description = description,
             score = score,
-            idPlace = idPlace,
+            id_place = idPlace,
             )
         score_obj.save()
         return Response({'message': 'Score created successfully.'}, status=status.HTTP_201_CREATED)

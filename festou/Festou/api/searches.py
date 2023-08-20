@@ -1,3 +1,4 @@
+from .manager import parse_date
 from .serializer import UserSerializer, PlaceSerializer, CreateTransactionSerializer
 from .models import User, Place, Transaction, Score
 from rest_framework.response import Response
@@ -28,12 +29,14 @@ def place(self, request):
         id_user = serializer.validated_data.get("id_user")
         places_user = Place.objects.filter(id_owner=id_user) 
 
+        initial_date = parse_date(serializer.validated_data.get("initial_date"))
+        final_date = parse_date(serializer.validated_data.get("final_date"))
+
         places_valid = Place.objects.filter(checked=1) 
-        
+
         places = places.intersection(places_loc)
-
         places = places.intersection(places_valid)
-
+        
         #verifica se as informações devem ser utilizadas e pega apenas a intersecção dos locais filtrados
         print (nome)
         if initialPrice != 0:
@@ -42,10 +45,9 @@ def place(self, request):
             places = places.intersection(places_finalPrice)
         if capacity != 0:
             places = places.intersection(places_capacity)
-
-
-        
-
+        if id_user != 0:
+            places = places.union(places_user)
+            
         serializer = PlaceSerializer(places, many=True)
 
         return Response(serializer.data, status=200)
@@ -83,8 +85,30 @@ def transaction_id(self,request, id):
         search = Transaction.objects.get(pk = id)
         response_data = CreateTransactionSerializer(search).data      
         return JsonResponse(response_data)
-    except Transaction.DoesNotExist: 
-        return JsonResponse({'message': 'The transaction does not exist'}, status=status.HTTP_404_NOT_FOUND)
+    except Place.DoesNotExist: 
+        return JsonResponse({'message': 'The place does not exist'}, status=status.HTTP_404_NOT_FOUND)
+
+def user_transactions_id(self, request, id):
+    try: 
+        transactions = Transaction.objects.filter(id_client=id)
+        if transactions.exists():
+            response_data = CreateTransactionSerializer(transactions, many=True).data
+            return JsonResponse(response_data, status=200, safe=False)
+        else:
+            return JsonResponse({'message': 'No transactions found for the specified User'}, status=status.HTTP_404_NOT_FOUND)
+    except User.DoesNotExist:
+        return JsonResponse({'message': 'The User does not exist'}, status=status.HTTP_404_NOT_FOUND)
+
+def place_transactions_id(self, request, id):
+    try: 
+        transactions = Transaction.objects.filter(id_place=id)
+        if transactions.exists():
+            response_data = CreateTransactionSerializer(transactions, many=True).data
+            return JsonResponse(response_data, status=200, safe=False)
+        else:
+            return JsonResponse({'message': 'No transactions found for the specified Place'}, status=status.HTTP_404_NOT_FOUND)
+    except User.DoesNotExist:
+        return JsonResponse({'message': 'The Place does not exist'}, status=status.HTTP_404_NOT_FOUND)
 
 def score_id(self, request, id_place):
     try:

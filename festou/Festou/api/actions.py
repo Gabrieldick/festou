@@ -1,5 +1,4 @@
 from rest_framework import status
-from .serializer import CreateChargebackSerializer
 from .models import User, Transaction
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
@@ -31,10 +30,32 @@ def login_user(self, request):
             return Response({'description': 'Email or password not found. Please try again.'}, status=status.HTTP_401_UNAUTHORIZED)
     return Response({'description': 'Invalid data...'}, status=status.HTTP_400_BAD_REQUEST)
 
+def withdraw_money(self, request):
+    if not self.request.session.exists(self.request.session.session_key):
+        self.request.session.create()
+    serializer = self.serializer_class(data=request.data)
+    if serializer.is_valid():
+        id_client = serializer.validated_data.get('id_client')
+        amount = serializer.validated_data.get('amount')
+        if id_client is None: #verifica se está recebendo as informações necessárias
+            return Response({'error': 'id_client is required.'}, status=400)
+        try: #verifica se este usuário existe
+            user = User.objects.get(pk=id_client)
+        except User.DoesNotExist:
+            return Response({'error': 'User not found.'}, status=404)
+        if user.balance >= amount and amount > 0:
+            user.balance -= amount
+            user.save()
+            return Response({'message': 'Withdraw successful.'}, status=200)
+        else:
+            return Response({'message': 'Amount invalid .'}, status=400)
+    else:
+        return Response(serializer.errors, status=400)
+
 def chargeback(self, request):
     if not self.request.session.exists(self.request.session.session_key):
         self.request.session.create()
-    serializer = CreateChargebackSerializer(data=request.data)
+    serializer = self.serializer_class(data=request.data)
     if serializer.is_valid():
         id_transaction = serializer.validated_data.get('id_transaction')
         if id_transaction is None: #verifica se está recebendo as informações necessárias

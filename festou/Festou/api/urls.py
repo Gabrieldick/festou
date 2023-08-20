@@ -5,6 +5,7 @@ urlpatterns = [
     path('v1/signup', views.CreateUserView.as_view()),
     path('v1/editUser/<int:user_id>',views.EditUser.as_view()),
     path('v1/userPlaces/<int:id>', views.UserPlacesId.as_view()),
+    path('v1/userTransactions/<int:id>', views.UserTransactionsId.as_view()),
     path('v1/user/<int:id>', views.SearchUserId.as_view()),
     
     path('v1/login', views.LoginUserView.as_view()),
@@ -14,7 +15,8 @@ urlpatterns = [
     path('v1/editPlace/<int:place_id>',views.EditPlace.as_view()),
     path('v1/deletePlace/<int:place_id>', views.DeletePlace.as_view()),
     path('v1/place/<int:id>', views.SearchPlaceId.as_view()),
-    
+    path('v1/placeTransactions/<int:id>', views.PlaceTransactionsId.as_view()),
+
     path('v1/withdraw', views.WithdrawMoney.as_view()),
 
     path('v1/transaction', views.CreateTransaction.as_view()), 

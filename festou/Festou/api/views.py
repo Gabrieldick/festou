@@ -33,6 +33,15 @@ class UserPlacesId(generics.ListCreateAPIView):
     def get(self, request, id, *args, **kwargs):
         return user_places_id(self, request, id)
 
+class UserTransactionsId(APIView):
+    def get(self, request, id, *args, **kwargs):
+        return user_transactions_id(self, request, id)
+
+class PlaceTransactionsId(APIView):
+    def get(self, request, id, *args, **kwargs):
+        return place_transactions_id(self, request, id)
+
+
 class SearchPlaceId(generics.ListCreateAPIView):
     def get(self, request, id, *args, **kwargs):
         return place_id(self, request, id)
@@ -44,7 +53,7 @@ class SearchTransactionId(generics.ListCreateAPIView):
 class UserTransactionsMade(generics.ListCreateAPIView): #Transações na qual o usuário é o cliente
     def get(self, request, id, *args, **kwargs):
         return get_user_transaction_made(self, request, id)
-    
+
 class UserTransactionsReceived(generics.ListCreateAPIView): #Transações na qual o usuário é o anunciante
     def get(self, request, id, *args, **kwargs):
         return get_user_transactions_received(self, request, id)

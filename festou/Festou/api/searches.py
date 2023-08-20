@@ -71,6 +71,7 @@ def user_places_id(self, request, id):
             return JsonResponse({'message': 'No places found for the specified User'}, status=status.HTTP_404_NOT_FOUND)
     except User.DoesNotExist:
         return JsonResponse({'message': 'The User does not exist'}, status=status.HTTP_404_NOT_FOUND)
+
 def place_id(self, request, id):
     try: 
         search = Place.objects.get(pk = id)
@@ -86,6 +87,28 @@ def transaction_id(self,request, id):
         return JsonResponse(response_data)
     except Place.DoesNotExist: 
         return JsonResponse({'message': 'The place does not exist'}, status=status.HTTP_404_NOT_FOUND)
+
+def user_transactions_id(self, request, id):
+    try: 
+        transactions = Transaction.objects.filter(id_client=id)
+        if transactions.exists():
+            response_data = CreateTransactionSerializer(transactions, many=True).data
+            return JsonResponse(response_data, status=200, safe=False)
+        else:
+            return JsonResponse({'message': 'No transactions found for the specified User'}, status=status.HTTP_404_NOT_FOUND)
+    except User.DoesNotExist:
+        return JsonResponse({'message': 'The User does not exist'}, status=status.HTTP_404_NOT_FOUND)
+
+def place_transactions_id(self, request, id):
+    try: 
+        transactions = Transaction.objects.filter(id_place=id)
+        if transactions.exists():
+            response_data = CreateTransactionSerializer(transactions, many=True).data
+            return JsonResponse(response_data, status=200, safe=False)
+        else:
+            return JsonResponse({'message': 'No transactions found for the specified Place'}, status=status.HTTP_404_NOT_FOUND)
+    except User.DoesNotExist:
+        return JsonResponse({'message': 'The Place does not exist'}, status=status.HTTP_404_NOT_FOUND)
 
 def score_id(self, request, id_place):
     try:

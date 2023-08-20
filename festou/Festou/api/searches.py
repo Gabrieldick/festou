@@ -37,6 +37,9 @@ def place(self, request):
 
         places_valid = Place.objects.filter(checked=1) 
 
+        places_with_transactions = Place.objects.exclude(transaction__final_date__lt=initial_date).exclude(transaction__initial_date__gt=final_date)
+
+        places = places.intersection(places_with_transactions)
         places = places.intersection(places_loc)
         places = places.intersection(places_valid)
         
@@ -111,25 +114,19 @@ def transaction_id(self,request, id):
 def user_transactions_id(self, request, id):
     try: 
         transactions = Transaction.objects.filter(id_client=id)
-        if transactions.exists():
-            response_data = CreateTransactionSerializer(transactions, many=True).data
-            return JsonResponse(response_data, status=200, safe=False)
-        else:
-            return JsonResponse({'message': 'No transactions found for the specified User'}, status=status.HTTP_404_NOT_FOUND)
+        response_data = CreateTransactionSerializer(transactions, many=True).data
+        return JsonResponse(response_data, status=200, safe=False)
     except User.DoesNotExist:
         return JsonResponse({'message': 'The User does not exist'}, status=status.HTTP_404_NOT_FOUND)
 
 def place_transactions_id(self, request, id):
     try: 
         transactions = Transaction.objects.filter(id_place=id)
-        if transactions.exists():
-            response_data = CreateTransactionSerializer(transactions, many=True).data
-            return JsonResponse(response_data, status=200, safe=False)
-        else:
-            return JsonResponse({'message': 'No transactions found for the specified Place'}, status=status.HTTP_404_NOT_FOUND)
+        response_data = CreateTransactionSerializer(transactions, many=True).data
+        return JsonResponse(response_data, status=200, safe=False)
     except User.DoesNotExist:
         return JsonResponse({'message': 'The Place does not exist'}, status=status.HTTP_404_NOT_FOUND)
-
+    
 def score_id(self, request, id_place):
     try:
         scores = Score.objects.filter(id_place=id_place)

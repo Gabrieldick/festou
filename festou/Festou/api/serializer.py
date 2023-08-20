@@ -23,9 +23,20 @@ class CreateTransactionSerializer(serializers.ModelSerializer):
         fields = ('id_client', 'id_place', 'initial_date', 'final_date')
 
 class ReportTransactionSerializer(serializers.ModelSerializer):
+    # Campos personalizados que não são de Transaction
+    name = serializers.CharField(allow_blank=True)
+    location = serializers.CharField(allow_blank=True)
+
     class Meta:
         model = Transaction
-        fields = ('id_place', 'initial_date', 'final_date', 'transaction_date', 'transaction_state', 'payment')
+        fields = ('id', 'id_place', 'initial_date', 'final_date', 'transaction_date', 'transaction_state', 'payment', 'name', 'location')
+
+    def to_representation(self, instance):
+        # Personalize a representação dos campos não pertencentes a Transaction aqui
+        data = super().to_representation(instance)
+        data['name'] = "Valor Personalizado"  # Substitua pelo valor desejado
+        data['location'] = "Outro Valor Personalizado"  # Substitua pelo valor desejado
+        return data
 
 class WithdrawMoneySerializer(serializers.Serializer):
     id_client = serializers.FloatField(allow_null=True)

@@ -36,12 +36,23 @@ def place(self, request):
         final_date = parse_date(serializer.validated_data.get("final_date"))
 
         places_valid = Place.objects.filter(checked=1) 
-
-        places_with_transactions = Place.objects.exclude(transaction__final_date__lt=initial_date).exclude(transaction__initial_date__gt=final_date)
-
-        places = places.intersection(places_with_transactions)
         places = places.intersection(places_loc)
         places = places.intersection(places_valid)
+
+        
+        if initial_date == None or final_date == None:
+            overlapping_transactions = Transaction.objects.filter(
+                initial_date__lte=parse_date(final_date),
+                final_date__gte=parse_date(initial_date),
+            )
+
+            places_with_transactions = []
+            for transaction in overlapping_transactions:
+                id_place = transaction.id_place
+                place_with_transaction = Place.objects.get(pk=id_place)
+                if place_with_transaction in places_with_transactions:
+                    places_with_transactions.append(place_with_transaction)
+            places = places.difference(places_with_transactions)
         
         #verifica se as informações devem ser utilizadas e pega apenas a intersecção dos locais filtrados
         print (nome)

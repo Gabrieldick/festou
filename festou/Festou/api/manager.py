@@ -144,14 +144,15 @@ def create_transaction(self, request):
         initial_date = serializer.validated_data.get("initial_date")
         final_date = serializer.validated_data.get("final_date")
 
-        #vendo se faz sentido
+        #vendo se faz sentido 
         if parse_date(initial_date) < timezone.now().date() or parse_date(final_date) < parse_date(initial_date):
             return Response({'description': 'Invalid date range...'}, status=status.HTTP_400_BAD_REQUEST)
         overlapping_transactions = Transaction.objects.filter(
             id_place=id_place,
             initial_date__lte=parse_date(final_date),
             final_date__gte=parse_date(initial_date),
-        )
+        ).exclude(transaction_state="Canceled")
+        
         if overlapping_transactions.exists():
             return Response({'description': 'Date conflict with existing transactions...'}, status=status.HTTP_400_BAD_REQUEST)
 

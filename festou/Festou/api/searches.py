@@ -1,3 +1,4 @@
+from datetime import datetime
 from .manager import parse_date
 from .serializer import UserSerializer, PlaceSerializer, CreateTransactionSerializer
 from .models import User, Place, Transaction, Score
@@ -32,28 +33,31 @@ def place(self, request):
         score = serializer.validated_data.get("score")
         places_score = Place.objects.filter(score__gte=score)
 
-        initial_date = parse_date(serializer.validated_data.get("initial_date"))
-        final_date = parse_date(serializer.validated_data.get("final_date"))
+        initial_date_string = serializer.validated_data.get("initial_date")
+        final_date_string = serializer.validated_data.get("final_date")
+        
 
         places_valid = Place.objects.filter(checked=1) 
         places = places.intersection(places_loc)
         places = places.intersection(places_valid)
 
         
-        if initial_date == None or final_date == None:
-            overlapping_transactions = Transaction.objects.filter(
-                initial_date__lte=parse_date(final_date),
-                final_date__gte=parse_date(initial_date),
-            )
+        #filtra os Places que não têm transações não canceladas em initial e final date
+        if parse_date(initial_date_string) is not None and parse_date(final_date_string) is not None:
+            if parse_date(initial_date_string) >= datetime.now().date() and parse_date(final_date_string) >= parse_date(initial_date_string):
 
-            places_with_transactions = []
-            for transaction in overlapping_transactions:
-                id_place = transaction.id_place
-                place_with_transaction = Place.objects.get(pk=id_place)
-                if place_with_transaction in places_with_transactions:
-                    places_with_transactions.append(place_with_transaction)
-            places = places.difference(places_with_transactions)
-        
+                overlapping_transactions = Transaction.objects.filter(
+                    initial_date__lte=parse_date(final_date_string),
+                    final_date__gte=parse_date(initial_date_string)
+                ).exclude(transaction_state="Canceled")
+
+                overlapping_transaction_ids = []
+                for transaction in overlapping_transactions:
+                    overlapping_transaction_ids.append(transaction.id_place)
+
+                places_with_overlapping_transactions = Place.objects.filter(pk__in=overlapping_transaction_ids)
+                places = places.difference(places_with_overlapping_transactions)
+
         #verifica se as informações devem ser utilizadas e pega apenas a intersecção dos locais filtrados
         print (nome)
         if initialPrice != 0:
@@ -62,7 +66,7 @@ def place(self, request):
             places = places.intersection(places_finalPrice)
         if capacity != 0:
             places = places.intersection(places_capacity)
-        if capacity != 0:
+        if score != 0:
             places = places.intersection(places_score)
 
         serializer = PlaceSerializer(places, many=True)

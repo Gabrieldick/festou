@@ -62,7 +62,7 @@ class SearchPlaceSerializer(serializers.Serializer):
 class CreatePlaceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Place
-        fields = ('name','price','location','capacity','description', 'terms_of_use', 'id_owner')
+        fields = ('name','price','location','capacity','description', 'terms_of_use', 'id_owner','image_1', 'image_2', 'image_3')
 
 class DeletePlaceSerializer(serializers.ModelSerializer):
     class Meta:

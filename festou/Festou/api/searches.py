@@ -51,6 +51,8 @@ def place(self, request):
                     final_date__gte=parse_date(initial_date_string)
                 ).exclude(transaction_state="Canceled")
 
+                print (overlapping_transactions)
+
                 overlapping_transaction_ids = []
                 for transaction in overlapping_transactions:
                     overlapping_transaction_ids.append(transaction.id_place)
@@ -59,7 +61,7 @@ def place(self, request):
                 places = places.difference(places_with_overlapping_transactions)
 
         #verifica se as informações devem ser utilizadas e pega apenas a intersecção dos locais filtrados
-        print (nome)
+
         if initialPrice != 0:
             places = places.intersection(places_initPrice)
         if finalPrice != 0:

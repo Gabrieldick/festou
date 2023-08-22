@@ -47,8 +47,8 @@ def place(self, request):
             if parse_date(initial_date_string) >= datetime.now().date() and parse_date(final_date_string) >= parse_date(initial_date_string):
 
                 overlapping_transactions = Transaction.objects.filter(
-                    initial_date__lte=parse_date(final_date_string),
-                    final_date__gte=parse_date(initial_date_string)
+                    initial_date__lte=final_date_string,
+                    final_date__gte=initial_date_string
                 ).exclude(transaction_state="Canceled")
 
                 overlapping_transaction_ids = []

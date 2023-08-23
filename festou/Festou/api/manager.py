@@ -185,6 +185,10 @@ def create_transaction(self, request):
     if serializer.is_valid():
         id_client = serializer.validated_data.get("id_client")
         id_place = serializer.validated_data.get("id_place")
+
+        if id_client == Place.objects.get(pk = id_place).id_owner:
+            return Response({'description': 'User cannot locate own place'}, status=status.HTTP_400_BAD_REQUEST)
+
         initial_date = serializer.validated_data.get("initial_date")
         final_date = serializer.validated_data.get("final_date")
 

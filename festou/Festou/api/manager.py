@@ -60,7 +60,7 @@ def create_user(self, request):
 def edit_user(self, request, user_id):
     try:
         user = User.objects.get(pk=user_id)
-        serializer = self.serializer_class(place, data=request.data)
+        serializer = self.serializer_class(user, data=request.data)
         if serializer.is_valid():
             # Acesse os dados do serializer
             first_name = serializer.validated_data.get("first_name")

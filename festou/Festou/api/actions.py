@@ -67,6 +67,19 @@ def chargeback(self, request, id_transaction):
         return Response({'message': 'Chargeback successful.'}, status=200)
     else:
         return Response({'message': 'Cannot perform chargeback after payday.'}, status=400)
+    
+
+def report_user(self, request, id_transaction):
+    if id_transaction is None: #verifica se está recebendo as informações necessárias
+        return Response({'error': 'id_transaction is required.'}, status=400)
+    try: #verifica se esta transação existe
+        transaction = Transaction.objects.get(pk=id_transaction)
+    except Transaction.DoesNotExist:
+        return Response({'error': 'Transaction not found.'}, status=404)
+    client = get_object_or_404(User, pk=transaction.id_client)
+    client.reported = True
+    client.save()
+    return Response({'message': 'Successful report.'}, status=200)
 
 def encrypt_password(password):
     hash_object = hashlib.sha256() # Criando um objeto hash SHA-256

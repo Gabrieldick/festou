@@ -13,6 +13,7 @@ class User(models.Model):
     account = models.CharField(max_length=15, null=True, blank=True)
     agency = models.CharField(max_length=15, null=True, blank=True)
     balance = models.FloatField(null=True, blank=True)
+    reported = models.BooleanField(default=False)
     blocked = models.BooleanField(default=False)
 
 class Place(models.Model):

@@ -97,6 +97,10 @@ class Chargeback(APIView):
     serializer_class = CreateChargebackSerializer
     def get(self, request, id_transaction):
         return chargeback(self, request, id_transaction)
+    
+class ReportUser(APIView):
+    def get(self, request, id_transaction):
+        return report_user(self, request, id_transaction)
 
 class LoginUserView(generics.CreateAPIView): 
     serializer_class = LoginUserSerializer

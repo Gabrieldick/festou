@@ -112,8 +112,7 @@ def create_place(self, request):
 
         # Acesse as imagens do serializer
         image_1 = serializer.validated_data.get('image_1')
-        image_2 = serializer.validated_data.get('image_2')
-        image_3 = serializer.validated_data.get('image_3')
+
 
         # Verifique se já existe um lugar com a mesma localização
         queryset = Place.objects.filter(location=location)
@@ -134,8 +133,6 @@ def create_place(self, request):
             score=0,
             avaliations=0,
             image_1=image_1,
-            image_2=image_2,
-            image_3=image_3
         )
 
         # Salve o lugar no banco de dados
@@ -159,8 +156,6 @@ def edit_place(self, request, place_id):
 
             # Acesse as imagens do serializer
             image_1 = serializer.validated_data.get('image_1')
-            image_2 = serializer.validated_data.get('image_2')
-            image_3 = serializer.validated_data.get('image_3')
 
             place.name=name
             place.price=price
@@ -168,8 +163,6 @@ def edit_place(self, request, place_id):
             place.description=description
             place.terms_of_use=terms_of_use
             place.image_1=image_1
-            place.image_2=image_2
-            place.image_3=image_3
             # Salve o lugar no banco de dados
             place.save()
 

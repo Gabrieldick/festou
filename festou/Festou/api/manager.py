@@ -242,7 +242,7 @@ def create_score(self, request):
         idPlace = serializer.validated_data.get("id_place")
 
         id_clients = []
-        for transaction in Transaction.objects.filter(id_client=idClient).filter(Transaction_state="Finished"):
+        for transaction in Transaction.objects.filter(id_client=idClient).filter(transaction_state="Finished"):
             id_clients.append(transaction.id_client)
         if idClient in id_clients:
             score_obj = Score(

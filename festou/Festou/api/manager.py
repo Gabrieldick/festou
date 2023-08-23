@@ -135,13 +135,31 @@ def edit_place(self, request, place_id):
         place = Place.objects.get(pk=place_id)
         serializer = self.serializer_class(place, data=request.data)
         if serializer.is_valid():
-            queryset = Place.objects.filter(location = place.location)
-            if queryset.exists():
-                return Response({'description': 'Location already linked to an existing place. Please try again.'}, status=status.HTTP_400_BAD_REQUEST)
-            serializer.save()
-            return Response(serializer.data)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            # Acesse os dados do serializer
+            name = serializer.validated_data.get("name")
+            price = serializer.validated_data.get("price")
+            capacity = serializer.validated_data.get("capacity")
+            description = serializer.validated_data.get("description")
+            terms_of_use = serializer.validated_data.get("terms_of_use")
+
+            # Acesse as imagens do serializer
+            image_1 = serializer.validated_data.get('image_1')
+            image_2 = serializer.validated_data.get('image_2')
+            image_3 = serializer.validated_data.get('image_3')
+
+            print (image_1)
+            place.name=name
+            place.price=price
+            place.capacity=capacity
+            place.description=description
+            place.terms_of_use=terms_of_use
+            place.image_1=image_1
+            place.image_2=image_2
+            place.image_3=image_3
+            # Salve o lugar no banco de dados
+            place.save()
+
+            return Response(status=status.HTTP_201_CREATED)
     except Place.DoesNotExist:
         return Response({'message': 'Place not found.'}, status=status.HTTP_404_NOT_FOUND)
 

@@ -17,61 +17,6 @@ class CreatePlaceView(generics.CreateAPIView):  #Funcionamento análogo à outra
     def post(self, request):
         return create_place(self, request)
     
-class CreatePlace(APIView):
-
-    parser_classes = [JSONParser, MultiPartParser]
-
-    def post(self, request, format=None):
-        if not self.request.session.exists(self.request.session.session_key):
-            self.request.session.create()
-
-        serializer = CreatePlaceSerializer(data=request.data)
-
-        if serializer.is_valid():
-            # Acesse os dados do serializer
-            name = serializer.validated_data.get("name")
-            price = serializer.validated_data.get("price")
-            location = serializer.validated_data.get("location")
-            capacity = serializer.validated_data.get("capacity")
-            id_owner = serializer.validated_data.get("id_owner")
-            description = serializer.validated_data.get("description")
-            terms_of_use = serializer.validated_data.get("terms_of_use")
-            checked = 0
-
-            # Acesse as imagens do serializer
-            image_1 = serializer.validated_data.get('image_1')
-            image_2 = serializer.validated_data.get('image_2')
-            image_3 = serializer.validated_data.get('image_3')
-
-            # Verifique se já existe um lugar com a mesma localização
-            queryset = Place.objects.filter(location=location)
-            if queryset.exists():
-                return Response({'description': 'Location already linked to an existing place. Please try again.'}, status=status.HTTP_400_BAD_REQUEST)
-
-            # Crie uma instância de Place com os dados e imagens
-            place = Place(
-                name=name,
-                price=price,
-                location=location,
-                capacity=capacity,
-                description=description,
-                id_owner=id_owner,
-                terms_of_use=terms_of_use,
-                checked=checked,
-                total_score=0,
-                score=0,
-                avaliations=0,
-                image_1=image_1,
-                image_2=image_2,
-                image_3=image_3
-            )
-
-            # Salve o lugar no banco de dados
-            place.save()
-
-            return Response(status=status.HTTP_201_CREATED)
-
-        return Response({'description': 'Invalid data...'}, status=status.HTTP_400_BAD_REQUEST)
 class CreateTransaction(APIView): #Funcionamento análogo à outras funções de criação
     serializer_class = CreateTransactionSerializer
     def post(self, request):
@@ -131,6 +76,7 @@ class WithdrawMoney(APIView):
 
 class EditPlace(APIView):
     serializer_class = PlaceSerializer
+    parser_classes = [JSONParser, MultiPartParser]
     def put(self, request, place_id):
         return edit_place(self, request, place_id)
 

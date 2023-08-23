@@ -120,7 +120,31 @@ def id_place_list(self, request):
 
         serializer = PlaceSerializer(places, many=True)
 
-        return Response(serializer.data, status=200)
+        places_with_images_base64 = []
+
+        for place in places:
+
+            # Obtenha os caminhos dos arquivos de imagem dos campos do modelo
+            image_1_path = place.image_1.path if place.image_1 else ''
+
+
+            # Leitura dos dados das imagens (assumindo que sejam arquivos locais)
+            image_1_data = open(image_1_path, 'rb').read() if image_1_path else None
+
+
+            # Codifique as imagens em base64 para incluí-las no JSON
+            image_1_base64 = base64.b64encode(image_1_data).decode('utf-8') if image_1_data else ''
+
+
+            # Adicione as imagens aos dados de resposta
+            response_data = PlaceSerializer(place).data
+            response_data['image_1'] = image_1_base64
+
+            
+            # Adicione o lugar modificado à lista
+            places_with_images_base64.append(response_data)
+
+        return Response(places_with_images_base64, status=200)
     return Response({'description': 'Invalid data...'}, status=status.HTTP_400_BAD_REQUEST)
 
 def user_id(self, request, id):

@@ -27,6 +27,9 @@ class ReportTransactionSerializer(serializers.ModelSerializer):
         model = Transaction
         fields = ('id', 'id_place', 'initial_date', 'final_date', 'transaction_date', 'transaction_state', 'payment', 'name', 'location')
 
+class TransactionsByMonthSerializer(serializers.Serializer):
+    Transactions_by_month = serializers.CharField(allow_null=True)
+
 class WithdrawMoneySerializer(serializers.Serializer):
     id_client = serializers.FloatField(allow_null=True)
     amount = serializers.FloatField(allow_null=True)

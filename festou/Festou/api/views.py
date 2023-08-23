@@ -64,6 +64,11 @@ class UserTransactionsReceived(generics.ListCreateAPIView): #Transações na qua
     def get(self, request, id, *args, **kwargs):
         return get_user_transactions_received(self, request, id)
 
+class TransactionsReceivedByMonth(generics.ListCreateAPIView): #Transações na qual o usuário é o anunciante
+    def get(self, request, id, *args, **kwargs):
+        return get_transactions_month(self, request, id)
+    
+
 class EditUser(APIView):
     serializer_class = EditUserSerializer
     def put(self, request, user_id):

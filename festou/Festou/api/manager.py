@@ -1,4 +1,4 @@
-from .serializer import  IdUserSerializer, ReportTransactionSerializer
+from .serializer import  IdUserSerializer, ReportTransactionSerializer,TransactionsByMonthSerializer
 from .models import User, Place, Transaction, Score
 from rest_framework.response import Response
 from rest_framework import status
@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from django.utils import timezone
 from django.core.exceptions import ObjectDoesNotExist
 import hashlib
+import json
 
 def parse_date(date: str) -> datetime.date:
     try:
@@ -228,6 +229,25 @@ def get_user_transactions_received(self, request, id):
         Transactions = Transaction.objects.filter(id_advertiser__contains = id)
         serializer = ReportTransactionSerializer(Transactions, many=True)
         return Response(serializer.data, status=200)
+    except Place.DoesNotExist: 
+        return JsonResponse({'message': 'The user does not exist'}, status=status.HTTP_404_NOT_FOUND)
+    
+def get_transactions_month(self, request, id):
+    try: 
+        Transactions = Transaction.objects.filter(id_advertiser__contains = id)
+        Transactions_year = Transaction.objects.filter(initial_date__contains = timezone.now().year)
+        Transactions = Transactions.intersection(Transactions_year)
+        Transactions_by_month = []
+        for i in range(1,13):
+            if i <=9:
+                month = "-0"+str(i)+"-"
+            else:
+                month = "-"+str(i)+"-"
+
+            Transactions_month_aux = Transaction.objects.filter(initial_date__contains = month)
+            Transactions_by_month.append(len(Transactions.intersection(Transactions_month_aux)))
+        json_data = json.dumps({'Transactions_by_month': Transactions_by_month})
+        return Response(json_data, status=200)
     except Place.DoesNotExist: 
         return JsonResponse({'message': 'The user does not exist'}, status=status.HTTP_404_NOT_FOUND)
 

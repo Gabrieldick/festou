@@ -60,14 +60,31 @@ def create_user(self, request):
 def edit_user(self, request, user_id):
     try:
         user = User.objects.get(pk=user_id)
-        serializer = self.serializer_class(user, data=request.data)
+        serializer = self.serializer_class(place, data=request.data)
         if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            # Acesse os dados do serializer
+            first_name = serializer.validated_data.get("first_name")
+            last_name = serializer.validated_data.get("last_name")
+            phone = serializer.validated_data.get("phone")
+            birthdate = serializer.validated_data.get("birthdate")
+            bank = serializer.validated_data.get("bank")
+            account = serializer.validated_data.get("account")
+            agency = serializer.validated_data.get("agency")
+
+
+            user.first_name=first_name
+            user.last_name=last_name
+            user.phone=phone
+            user.birthdate=birthdate
+            user.bank=bank
+            user.account=account
+            user.agency=agency
+            # Salve o lugar no banco de dados
+            user.save()
+            return Response({'message': 'User edited.'},status=status.HTTP_201_CREATED)
     except Place.DoesNotExist:
         return Response({'message': 'Place not found.'}, status=status.HTTP_404_NOT_FOUND)
+    
 
 def add_balance(self, id, balance): 
         user = User.objects.get(pk = id)
@@ -145,7 +162,6 @@ def edit_place(self, request, place_id):
             image_2 = serializer.validated_data.get('image_2')
             image_3 = serializer.validated_data.get('image_3')
 
-            print (image_1)
             place.name=name
             place.price=price
             place.capacity=capacity

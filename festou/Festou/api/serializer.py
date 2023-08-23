@@ -15,7 +15,7 @@ class CreateUserSerializer(serializers.ModelSerializer):
 class EditUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('first_name','last_name','email','phone','password','birthdate','bank','account','agency')
+        fields = ('first_name','last_name','phone','birthdate','bank','account','agency')
 
 class CreateTransactionSerializer(serializers.ModelSerializer):
     class Meta:

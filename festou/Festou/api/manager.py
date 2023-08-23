@@ -61,9 +61,6 @@ def edit_user(self, request, user_id):
         user = User.objects.get(pk=user_id)
         serializer = self.serializer_class(user, data=request.data)
         if serializer.is_valid():
-            queryset = User.objects.filter(email = user.email)
-            if queryset.exists():
-                return Response({'description': 'CPF or Email already linked to an existing account. Please try again.'}, status=status.HTTP_400_BAD_REQUEST)
             serializer.save()
             return Response(serializer.data)
         else:
@@ -135,9 +132,6 @@ def edit_place(self, request, place_id):
         place = Place.objects.get(pk=place_id)
         serializer = self.serializer_class(place, data=request.data)
         if serializer.is_valid():
-            queryset = Place.objects.filter(location = place.location)
-            if queryset.exists():
-                return Response({'description': 'Location already linked to an existing place. Please try again.'}, status=status.HTTP_400_BAD_REQUEST)
             serializer.save()
             return Response(serializer.data)
         else:
@@ -225,27 +219,40 @@ def create_score(self, request):
         description = serializer.validated_data.get("description")
         score = serializer.validated_data.get("score")
         idPlace = serializer.validated_data.get("id_place")
-        score_obj = Score(
-            id_client = idClient, 
-            description = description,
-            score = score,
-            id_place = idPlace,
-            )
-        score_obj.save()
-        update_place_score(idPlace, score)
-        return Response({'message': 'Score created successfully.'}, status=status.HTTP_201_CREATED)
+
+        id_clients = []
+        for transaction in Transaction.objects.filter(id_client=idClient).filter(Transaction_state="Finished"):
+            id_clients.append(transaction.id_client)
+        if idClient in id_clients:
+            score_obj = Score(
+                id_client = idClient, 
+                description = description,
+                score = score,
+                id_place = idPlace,
+                )
+            score_obj.save()
+            update_place_score(idPlace, score)
+            return Response({'message': 'Score created successfully.'}, status=status.HTTP_201_CREATED)
+        return Response({'message': 'It is allowed to evaluate after the transaction'}, status=status.HTTP_406_NOT_ACCEPTABLE)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 def update_place_score(id_place, score):
     try:
         place = Place.objects.get(pk=id_place)
+        if place.total_score == None:
+            place.total_score = 0.0
+        if place.avaliations == None:
+            place.avaliations = 0
+        if score == None:
+            score = 0.0
+        
         place.score = (place.total_score + score)/float(place.avaliations+1)
         place.total_score += score
         place.avaliations += 1
         place.save()
         return
     except ObjectDoesNotExist:
-        return 0
+        return
     
 def encrypt_password(password):
     hash_object = hashlib.sha256() # Criando um objeto hash SHA-256

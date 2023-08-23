@@ -5,6 +5,8 @@ from .models import User, Place, Transaction, Score
 from rest_framework.response import Response
 from rest_framework import status
 from django.http import JsonResponse
+import json
+import base64
 
 def place(self, request):
     if not self.request.session.exists(self.request.session.session_key):
@@ -114,11 +116,33 @@ def user_places_id(self, request, id):
 
 def place_id(self, request, id):
     try: 
-        search = Place.objects.get(pk = id)
-        response_data = PlaceSerializer(search).data      
+        search = Place.objects.get(pk=id)
+
+        # Obtenha os caminhos dos arquivos de imagem dos campos do modelo
+        image_1_path = search.image_1.path if search.image_1 else ''
+        image_2_path = search.image_2.path if search.image_2 else ''
+        image_3_path = search.image_3.path if search.image_3 else ''
+
+        # Leitura dos dados das imagens (assumindo que sejam arquivos locais)
+        image_1_data = open(image_1_path, 'rb').read() if image_1_path else None
+        image_2_data = open(image_2_path, 'rb').read() if image_2_path else None
+        image_3_data = open(image_3_path, 'rb').read() if image_3_path else None
+
+        # Codifique as imagens em base64 para incluí-las no JSON
+        image_1_base64 = base64.b64encode(image_1_data).decode('utf-8') if image_1_data else ''
+        image_2_base64 = base64.b64encode(image_2_data).decode('utf-8') if image_2_data else ''
+        image_3_base64 = base64.b64encode(image_3_data).decode('utf-8') if image_3_data else ''
+
+        # Adicione as imagens aos dados de resposta
+        response_data = PlaceSerializer(search).data
+        response_data['image_1'] = image_1_base64
+        response_data['image_2'] = image_2_base64
+        response_data['image_3'] = image_3_base64
+
         return JsonResponse(response_data, status=200)
     except Place.DoesNotExist: 
         return JsonResponse({'message': 'The place does not exist'}, status=status.HTTP_404_NOT_FOUND)
+
 
 def transaction_id(self,request, id):
     try: 

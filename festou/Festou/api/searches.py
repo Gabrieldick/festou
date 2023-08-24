@@ -5,7 +5,7 @@ from .models import User, Place, Transaction, Score
 from rest_framework.response import Response
 from rest_framework import status
 from django.http import JsonResponse
-import json
+from django.db.models import Q
 import base64
 
 def place(self, request):
@@ -38,19 +38,24 @@ def place(self, request):
         places_valid = Place.objects.filter(checked=1) 
         places = places.intersection(places_loc)
         places = places.intersection(places_valid)
-
-        trasaction = Transaction.objects.filter(pk=1)
         
         #filtra os Places que não têm transações não canceladas em initial e final date
         if parse_date(initial_date_string) is not None and parse_date(final_date_string) is not None:
             if parse_date(initial_date_string) >= datetime.now(tz=timezone(timedelta(hours=-3))).date() and parse_date(final_date_string) >= parse_date(initial_date_string):
-                overlapping_transactions = Transaction.objects.filter(
+                first_filter = Transaction.objects.filter(
                     initial_date__lte=parse_date(final_date_string),
+                    initial_date__gte=parse_date(initial_date_string)
+                ).exclude(transaction_state="Canceled")
+
+                last_filter = Transaction.objects.filter(
+                    final_date__lte=parse_date(final_date_string),
                     final_date__gte=parse_date(initial_date_string)
                 ).exclude(transaction_state="Canceled")
 
+                first_filter = first_filter.union(last_filter)
+
                 overlapping_transaction_ids = []
-                for transaction in overlapping_transactions:
+                for transaction in first_filter:
                     overlapping_transaction_ids.append(transaction.id_place)
 
                 places_with_overlapping_transactions = Place.objects.filter(pk__in=overlapping_transaction_ids)

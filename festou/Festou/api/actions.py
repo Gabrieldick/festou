@@ -59,7 +59,7 @@ def chargeback(self, request, id_transaction):
         transaction = Transaction.objects.get(pk=id_transaction)
     except Transaction.DoesNotExist:
         return Response({'error': 'Transaction not found.'}, status=404)
-    if datetime.now().date() < transaction.payday and transaction.transaction_state == 'Started':
+    if datetime.now(tz=timezone(timedelta(hours=-3))).date() < transaction.payday and transaction.transaction_state == 'Started':
         client = get_object_or_404(User, pk=transaction.id_client)
         add_balance(self,id=transaction.id_client, balance=transaction.payment) #devolve o dinheiro para o comprador e altera o status da transação
         transaction.transaction_state = "Canceled"

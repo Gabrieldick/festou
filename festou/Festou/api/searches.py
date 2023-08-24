@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from .manager import parse_date
 from .serializer import UserSerializer, PlaceSerializer, CreateTransactionSerializer
 from .models import User, Place, Transaction, Score
@@ -29,31 +29,25 @@ def place(self, request):
         capacity = serializer.validated_data.get("capacity")
         places_capacity = Place.objects.filter(capacity__gte=capacity)
 
-        id_user = serializer.validated_data.get("id_user")
-        places_user = Place.objects.filter(id_owner=id_user) 
-
         score = serializer.validated_data.get("score")
         places_score = Place.objects.filter(score__gte=score)
 
         initial_date_string = serializer.validated_data.get("initial_date")
         final_date_string = serializer.validated_data.get("final_date")
         
-
         places_valid = Place.objects.filter(checked=1) 
         places = places.intersection(places_loc)
         places = places.intersection(places_valid)
 
+        trasaction = Transaction.objects.filter(pk=1)
         
         #filtra os Places que não têm transações não canceladas em initial e final date
         if parse_date(initial_date_string) is not None and parse_date(final_date_string) is not None:
-            if parse_date(initial_date_string) >= datetime.now().date() and parse_date(final_date_string) >= parse_date(initial_date_string):
-
+            if parse_date(initial_date_string) >= datetime.now(tz=timezone(timedelta(hours=-3))).date() and parse_date(final_date_string) >= parse_date(initial_date_string):
                 overlapping_transactions = Transaction.objects.filter(
-                    initial_date__lte=final_date_string,
-                    final_date__gte=initial_date_string
+                    initial_date__lte=parse_date(final_date_string),
+                    final_date__gte=parse_date(initial_date_string)
                 ).exclude(transaction_state="Canceled")
-
-                print (overlapping_transactions)
 
                 overlapping_transaction_ids = []
                 for transaction in overlapping_transactions:

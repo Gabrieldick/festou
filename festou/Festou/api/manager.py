@@ -220,7 +220,7 @@ def create_transaction(self, request):
             final_date = parse_date(final_date),
             payday = payday,
             payment = payment,
-            transaction_date = datetime.now().date(),
+            transaction_date = datetime.now(tz=timezone(timedelta(hours=-3))).date(),
             transaction_state = "Started",
             name = atual_place.name,
             location = atual_place.location
